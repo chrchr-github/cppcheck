@@ -2247,6 +2247,10 @@ struct SingleValueFlowAnalyzer : ValueFlowAnalyzer {
         return false;
     }
 
+    virtual bool isKnown() const OVERRIDE {
+        return value.isKnown();
+    }
+
     virtual bool updateScope(const Token* endBlock, bool) const OVERRIDE {
         const Scope* scope = endBlock->scope();
         if (!scope)
@@ -5176,6 +5180,14 @@ struct MultiValueFlowAnalyzer : ValueFlowAnalyzer {
                 return !p.second.isImpossible();
         }
         return false;
+    }
+
+    virtual bool isKnown() const OVERRIDE {
+        for (auto&& p:values) {
+            if (!p.second.isKnown())
+                return false;
+        }
+        return !values.empty();
     }
 
     virtual bool updateScope(const Token* endBlock, bool) const OVERRIDE {
