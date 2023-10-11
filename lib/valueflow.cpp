@@ -1874,6 +1874,8 @@ static void valueFlowImpossibleValues(TokenList& tokenList, const Settings* sett
                 }
             }
             for (ValueFlow::Value& value : values) {
+                if (value.isSymbolicValue())
+                    continue;
                 value.setImpossible();
                 if (isMin) {
                     value.intvalue++;
