@@ -1080,6 +1080,10 @@ private:
             const Settings s = settingsBuilder().library("std.cfg").library("windows.cfg").library("mfc.cfg").build();
             ASSERT_EQUALS(s.library.defines.empty(), false);
         }
+        {
+            const Settings s = settingsBuilder().library("std.cfg").library("windows.cfg").library("microsoft_atl.cfg").library("microsoft_sal.cfg").library("microsoft_unittest.cfg").build();
+            ASSERT_EQUALS(s.library.defines.empty(), false);
+        }
     }
 };
 

@@ -1,8 +1,6 @@
-
 // Test library configuration for mfc.cfg
 
 #include <afxwin.h>
-
 
 class MyClass : public CObject {
     DECLARE_DYNAMIC(MyClass)
