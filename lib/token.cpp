@@ -2490,8 +2490,6 @@ std::pair<const Token*, const Token*> Token::typeDecl(const Token* tok, bool poi
     }
     if (Token::simpleMatch(tok, "="))
         return Token::typeDecl(tok->astOperand1());
-    if (Token::simpleMatch(tok, "."))
-        return Token::typeDecl(tok->astOperand2());
 
     const ::Type * t = typeOf(tok);
     if (!t || !t->classDef)
