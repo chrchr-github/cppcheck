@@ -1727,6 +1727,16 @@ private:
         ASSERT_EQUALS(1U, values.size());
         ASSERT_EQUALS(-1, values.back().intvalue);
         ASSERT_EQUALS_ENUM(ValueFlow::Value::ValueKind::Impossible, values.back().valueKind);
+
+        // #14221
+        code = "void f() {\n"
+               "    int a[3];"
+               "    x = sizeof(a) / sizeof(int);\n"
+               "}";
+        values = tokenValues(code,"/");
+        ASSERT_EQUALS(1U, values.size());
+        ASSERT_EQUALS(3, values.back().intvalue);
+        ASSERT_EQUALS_ENUM(ValueFlow::Value::ValueKind::Known, values.back().valueKind);
     }
 
     void valueFlowComma()

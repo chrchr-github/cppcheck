@@ -156,11 +156,12 @@ namespace ValueFlow
                 value.setKnown();
             setTokenValue(tok, std::move(value), settings);
         } else if (Token::simpleMatch(tok, "sizeof (")) {
-            if (tok->next()->astOperand2() && !tok->next()->astOperand2()->isLiteral() && tok->next()->astOperand2()->valueType() &&
-                (tok->next()->astOperand2()->valueType()->pointer == 0 || // <- TODO this is a bailout, abort when there are array->pointer conversions
-                 (tok->next()->astOperand2()->variable() && !tok->next()->astOperand2()->variable()->isArray())) &&
-                !tok->next()->astOperand2()->valueType()->isEnum()) { // <- TODO this is a bailout, handle enum with non-int types
-                const size_t sz = getSizeOf(*tok->next()->astOperand2()->valueType(),
+            const Token* sizeofArg = tok->next()->astOperand2();
+            if (sizeofArg && !sizeofArg->isLiteral() && sizeofArg->valueType() &&
+                (sizeofArg->valueType()->pointer == 0 || // <- TODO this is a bailout, abort when there are array->pointer conversions
+                 (sizeofArg->variable() && !sizeofArg->variable()->isArray())) &&
+                !sizeofArg->valueType()->isEnum()) { // <- TODO this is a bailout, handle enum with non-int types
+                const size_t sz = getSizeOf(*sizeofArg->valueType(),
                                             settings,
                                             ValueFlow::Accuracy::ExactOrZero);
                 if (sz) {
@@ -226,7 +227,8 @@ namespace ValueFlow
                     sz1->variable()->isArray() &&
                     !sz1->variable()->dimensions().empty() &&
                     sz1->variable()->dimensionKnown(0) &&
-                    Token::Match(sz2->astOperand2(), "*|[") && Token::Match(sz2->astOperand2()->astOperand1(), "%varid%", varid1)) {
+                    ((Token::Match(sz2->astOperand2(), "%type%") && sz2->astOperand2()->valueType() && sz2->astOperand2()->valueType()->isTypeEqual(sz1->valueType())) ||
+                     (Token::Match(sz2->astOperand2(), "*|[") && Token::Match(sz2->astOperand2()->astOperand1(), "%varid%", varid1)))) {
                     Value value(sz1->variable()->dimension(0));
                     if (!tok2->isTemplateArg() && settings.platform.type != Platform::Type::Unspecified)
                         value.setKnown();
