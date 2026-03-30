@@ -1959,7 +1959,18 @@ static bool isLocal(const Token *tok)
     return var && !var->isStatic() && var->isLocal();
 }
 
-static bool isc_strCall(const Token* tok, const Library::Container* container)
+const Library::Container* getContainer(const Token* tok, const Settings& settings)
+{
+    if (!tok || !tok->valueType())
+        return nullptr;
+    const Library::Container* container = tok->valueType()->container;
+    if (tok->valueType()->type == ValueType::ITERATOR) {
+        return ValueType::parseDecl(tok->valueType()->containerTypeToken, settings).container;
+    }
+    return container;
+}
+
+static bool isc_strCall(const Token* tok, const Library::Container* container, const Settings& settings)
 {
     if (!Token::simpleMatch(tok, "("))
         return false;
@@ -1967,9 +1978,7 @@ static bool isc_strCall(const Token* tok, const Library::Container* container)
     if (!Token::simpleMatch(dot, "."))
         return false;
     const Token* obj = dot->astOperand1();
-    if (!obj || !obj->valueType())
-        return false;
-    const Library::Container* objContainer = obj->valueType()->container;
+    const Library::Container* objContainer = getContainer(obj, settings);
     if (!objContainer || !container || !objContainer->stdStringLike || (objContainer != container && !container->view))
         return false;
     return Token::Match(dot->astOperand2(), "c_str|data ( )");
@@ -2106,29 +2115,16 @@ void CheckStl::string_c_str()
                     if (i->second.n == 0)
                         continue;
 
-                    const Token* tok2 = tok->tokAt(2);
-                    int j;
-                    for (j = 0; tok2 && j < i->second.n - 1; j++)
-                        tok2 = tok2->nextArgument();
-                    if (tok2)
-                        tok2 = tok2->nextArgument();
-                    else
-                        break;
-                    if (!tok2 && j == i->second.n - 1)
-                        tok2 = tok->linkAt(1);
-                    else if (tok2)
-                        tok2 = tok2->previous();
-                    else
-                        break;
-                    if (tok2 && Token::Match(tok2->tokAt(-4), ". c_str|data ( )")) {
-                        if (isString(tok2->tokAt(-4)->astOperand1())) {
-                            string_c_strParam(tok, i->second.n, i->second.argtype);
-                        } else if (Token::Match(tok2->tokAt(-9), "%name% . str ( )")) { // Check ss.str().c_str() as parameter
-                            const Variable* ssVar = tok2->tokAt(-9)->variable();
-                            if (ssVar && ssVar->isStlType(stl_string_stream))
-                                string_c_strParam(tok, i->second.n, i->second.argtype);
-                        }
-                    }
+                    const std::vector<const Token*> args = getArguments(tok);
+                    const nonneg int idx = i->second.n - 1;
+                    if (idx >= args.size() || idx >= i->first->argumentList.size())
+                        continue;
+                    auto funcArg = i->first->argumentList.begin();
+                    std::advance(funcArg, idx);
+                    if (!funcArg->valueType())
+                        continue;
+                    if (isc_strCall(args[idx], funcArg->valueType()->container, *mSettings))
+                        string_c_strParam(tok, i->second.n, i->second.argtype);
                 }
             } else if (printPerformance && isc_strConstructor(tok)) {
                 string_c_strConstructor(tok, tok->variable()->getTypeName());
