@@ -198,6 +198,7 @@ void TokenList::addtoken(const Token * tok, const nonneg int lineno, const nonne
     mTokensFrontBack->back->column(column);
     mTokensFrontBack->back->fileIndex(fileno);
     mTokensFrontBack->back->flags(tok->flags());
+    mTokensFrontBack->back->tokType(tok->tokType());
 }
 
 void TokenList::addtoken(const Token *tok, const Token *locationTok)
@@ -219,6 +220,7 @@ void TokenList::addtoken(const Token *tok, const Token *locationTok)
     mTokensFrontBack->back->linenr(locationTok->linenr());
     mTokensFrontBack->back->column(locationTok->column());
     mTokensFrontBack->back->fileIndex(locationTok->fileIndex());
+    mTokensFrontBack->back->tokType(tok->tokType());
 }
 
 void TokenList::addtoken(const Token *tok)
@@ -242,6 +244,7 @@ void TokenList::addtoken(const Token *tok)
     mTokensFrontBack->back->linenr(tok->linenr());
     mTokensFrontBack->back->column(tok->column());
     mTokensFrontBack->back->fileIndex(tok->fileIndex());
+    mTokensFrontBack->back->tokType(tok->tokType());
 }
 
 
@@ -1055,7 +1058,12 @@ static void compilePrecedence2(Token *&tok, AST_state& state)
             else
                 compileUnaryOp(tok, state, compileExpression);
             tok = tok2->link()->next();
-        } else if (Token::simpleMatch(tok->previous(), "requires {")) {
+        } else if ((Token::simpleMatch(tok->tokAt(-1), "requires {") && tok->tokAt(-1)->isKeyword())
+                   || (Token::simpleMatch(tok->tokAt(-1), ")")
+                       && tok->linkAt(-1)
+                       && Token::simpleMatch(tok->linkAt(-1)->tokAt(-1), "requires (") && tok->linkAt(-1)->tokAt(-1)->isKeyword())) {
+            if (!tok->link())
+                throw InternalError(tok, "Syntax error, token has no link.", InternalError::AST);
             tok->astOperand1(state.op.top());
             state.op.pop();
             state.op.push(tok);

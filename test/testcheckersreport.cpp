@@ -17,18 +17,16 @@
  */
 
 
+#include "addoninfo.h"
 #include "checkersreport.h"
 #include "fixture.h"
-#include "helpers.h"
 #include "settings.h"
-
-#include <cstddef>
 
 class TestCheckersReport : public TestFixture {
 public:
     TestCheckersReport() : TestFixture("TestCheckersReport") {}
 
-
+private:
     void run() final {
         // AddonInfo::checkers
         TEST_CASE(addonInfoCheckers);

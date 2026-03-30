@@ -3557,7 +3557,7 @@ void CheckOther::checkVarFuncNullUB()
     for (const Scope * scope : symbolDatabase->functionScopes) {
         for (const Token* tok = scope->bodyStart; tok != scope->bodyEnd; tok = tok->next()) {
             // Is NULL passed to a function?
-            if (Token::Match(tok,"[(,] NULL [,)]")) {
+            if (Token::Match(tok,"[(,] NULL )")) {
                 // Locate function name in this function call.
                 const Token *ftok = tok;
                 int argnr = 1;
@@ -4429,7 +4429,7 @@ void CheckOther::checkModuloOfOne()
     for (const Token *tok = mTokenizer->tokens(); tok; tok = tok->next()) {
         if (!tok->astOperand2() || !tok->astOperand1())
             continue;
-        if (tok->str() != "%")
+        if (tok->str() != "%" && tok->str() != "%=")
             continue;
         if (!tok->valueType() || !tok->valueType()->isIntegral())
             continue;

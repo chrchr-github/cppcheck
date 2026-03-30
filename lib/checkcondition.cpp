@@ -619,6 +619,8 @@ static bool isNonConstFunctionCall(const Token *ftok, const Library &library)
         return false;
     if (ftok->function() && ftok->function()->isConst())
         return false;
+    if (ftok->isControlFlowKeyword())
+        return false;
     return true;
 }
 
@@ -1973,8 +1975,6 @@ void CheckCondition::checkCompareValueOutOfTypeRange()
                     continue;
                 if (valueTok->getKnownIntValue() < 0 && valueTok->valueType() && valueTok->valueType()->sign != ValueType::Sign::SIGNED)
                     continue;
-                if (valueTok->valueType() && valueTok->valueType()->isTypeEqual(typeTok->valueType()))
-                    continue;
                 std::uint8_t bits = 0;
                 switch (typeTok->valueType()->type) {
                 case ValueType::Type::BOOL:
@@ -2013,6 +2013,8 @@ void CheckCondition::checkCompareValueOutOfTypeRange()
 
                 bool result{};
                 const auto kiv = valueTok->getKnownIntValue();
+                if (kiv == 0)
+                    continue; // prevent overlap with TestOther::unsignedPositive/unsignedLessThanZero
                 if (tok->str() == "==")
                     result = false;
                 else if (tok->str() == "!=")
