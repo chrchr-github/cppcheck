@@ -2008,12 +2008,12 @@ static bool isc_strInPlusChain(const Token* tok, const Library::Container* conta
 
 static bool isc_strAssignment(const Token* tok)
 {
-    if (!Token::simpleMatch(tok, "="))
+    if (!Token::Match(tok, "=|+="))
         return false;
     const Token* strTok = tok->astOperand1();
     if (!strTok || !strTok->valueType())
         return false;
-    return isc_strCall(tok->astOperand2(), strTok->valueType()->container);
+    return isc_strInPlusChain(tok->astOperand2(), strTok->valueType()->container);
 }
 
 static bool isc_strConstructor(const Token* tok)
@@ -2085,13 +2085,13 @@ void CheckStl::string_c_str()
             if (Token::Match(tok, "throw %var% . c_str|data ( ) ;") && isLocal(tok->next()) &&
                 tok->next()->variable() && tok->next()->variable()->isStlStringType()) {
                 string_c_strThrowError(tok);
-            } else if (tok->variable() && tok->strAt(1) == "=") {
-                if (Token::Match(tok->tokAt(2), "%var% . str ( ) . c_str|data ( ) ;")) {
+            } else if (tok->variable()) {
+                if (Token::Match(tok->tokAt(1), "= %var% . str ( ) . c_str|data ( ) ;")) {
                     const Variable* var = tok->variable();
                     const Variable* var2 = tok->tokAt(2)->variable();
                     if (var->isPointer() && var2 && var2->isStlType(stl_string_stream))
                         string_c_strError(tok);
-                } else if (printPerformance && isc_strAssignment(tok->tokAt(1))) {
+                } else if (printPerformance && isc_strAssignment(tok->astParent())) {
                     string_c_strAssignment(tok, tok->variable()->getTypeName());
                 } else if (Token::Match(tok->tokAt(2), "%name% (") &&
                            Token::Match(tok->linkAt(3), ") . c_str|data ( ) ;") &&
