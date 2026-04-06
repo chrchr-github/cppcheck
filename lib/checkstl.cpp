@@ -2085,6 +2085,8 @@ void CheckStl::string_c_str()
             if (Token::Match(tok, "throw %var% . c_str|data ( ) ;") && isLocal(tok->next()) &&
                 tok->next()->variable() && tok->next()->variable()->isStlStringType()) {
                 string_c_strThrowError(tok);
+            } else if (printPerformance && isc_strConstructor(tok)) {
+                string_c_strConstructor(tok, tok->variable()->getTypeName());
             } else if (tok->variable()) {
                 if (Token::Match(tok->tokAt(1), "= %var% . str ( ) . c_str|data ( ) ;")) {
                     const Variable* var = tok->variable();
@@ -2130,8 +2132,6 @@ void CheckStl::string_c_str()
                         }
                     }
                 }
-            } else if (printPerformance && isc_strConstructor(tok)) {
-                string_c_strConstructor(tok, tok->variable()->getTypeName());
             } else if (printPerformance && isc_strConcat(tok)) {
                 string_c_strConcat(tok);
             } else if (printPerformance && Token::simpleMatch(tok, "<<") && tok->astOperand2() && Token::Match(tok->astOperand2()->astOperand1(), ". c_str|data ( )")) {
