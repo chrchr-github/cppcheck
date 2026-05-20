@@ -722,6 +722,12 @@ private:
               "  return AtomName;\n"
               "}");
         ASSERT_EQUALS("", errout_str());
+
+        check("void* f(size_t n) {\n" // #11754
+              "    char* p = malloc(n * sizeof(void*));\n"
+              "    return p;\n"
+              "}");
+        ASSERT_EQUALS("", errout_str());
     }
 
     void checkPointerSizeofStruct() {
