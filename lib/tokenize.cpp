@@ -7368,6 +7368,8 @@ void Tokenizer::simplifyVarDecl(Token * tokBegin, const Token * const tokEnd, co
                     Token* lambdaEnd = findLambdaEndScope(lambdaStart);
                     if (lambdaEnd)
                         simplifyVarDecl(lambdaEnd->link()->next(), lambdaEnd, only_k_r_fpar);
+                    else
+                        simplifyVarDecl(tok->tokAt(2), tok->linkAt(1), only_k_r_fpar);
                 } else {
                     for (Token* tok2 = tok->next(); tok2 != tok->linkAt(1); tok2 = tok2->next()) {
                         Token* lambdaEnd = findLambdaEndScope(tok2);

@@ -233,6 +233,7 @@ private:
         TEST_CASE(vardecl32);
         TEST_CASE(vardecl33);
         TEST_CASE(vardecl34);
+        TEST_CASE(vardecl35);
         TEST_CASE(vardecl_stl_1);
         TEST_CASE(vardecl_stl_2);
         TEST_CASE(vardecl_stl_3);
@@ -2854,6 +2855,19 @@ private:
         {
             const char code[] = "static enum { E } const *f() { return NULL; }";
             ASSERT_EQUALS("enum Anonymous0 { E } ; static enum Anonymous0 const * f ( ) { return NULL ; }", tokenizeAndStringify(code, dinit(TokenizeOptions, $.cpp = false)));
+        }
+    }
+    void vardecl35() { // #14842
+        {
+            const char code[] = "auto f() -> void {\n"
+                                "    auto p = new int;\n"
+                                "    *p = 0;\n"
+                                "}\n";
+            ASSERT_EQUALS("auto f ( ) . void {\n"
+                          "auto p ; p = new int ;\n"
+                          "* p = 0 ;\n"
+                          "}", tokenizeAndStringify(code));
+            ignore_errout();
         }
     }
 
