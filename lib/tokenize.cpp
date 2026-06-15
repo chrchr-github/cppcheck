@@ -7333,6 +7333,19 @@ void Tokenizer::simplifyVarDecl(const bool only_k_r_fpar)
     simplifyVarDecl(list.front(), nullptr, only_k_r_fpar);
 }
 
+static Token* isTrailingReturnType(Token* tok)
+{
+    while (Token::Match(tok, "%name%|::|>")) {
+        if (Token* open = tok->findOpeningBracket())
+            tok = open->tokAt(-1);
+        else
+            tok = tok->tokAt(-1);
+    }
+    if (tok && Token::simpleMatch(tok->tokAt(-1), ") ."))
+        return tok->tokAt(-1);
+    return nullptr;
+}
+
 // cppcheck-suppress functionConst - has side effects
 void Tokenizer::simplifyVarDecl(Token * tokBegin, const Token * const tokEnd, const bool only_k_r_fpar)
 {
@@ -7360,9 +7373,9 @@ void Tokenizer::simplifyVarDecl(Token * tokBegin, const Token * const tokEnd, co
                 if (!tok->linkAt(1))
                     syntaxError(tokBegin);
                 // Check for lambdas before skipping
-                if (Token::Match(tok->tokAt(-2), ") . %name%")) { // trailing return type
+                if (Token* trailingStart = isTrailingReturnType(tok)) {
                     // TODO: support lambda without parameter clause?
-                    Token* lambdaStart = tok->linkAt(-2)->previous();
+                    Token* lambdaStart = trailingStart->link()->tokAt(-1);
                     if (Token::simpleMatch(lambdaStart, "]"))
                         lambdaStart = lambdaStart->link();
                     Token* lambdaEnd = findLambdaEndScope(lambdaStart);
