@@ -2857,6 +2857,7 @@ private:
             ASSERT_EQUALS("enum Anonymous0 { E } ; static enum Anonymous0 const * f ( ) { return NULL ; }", tokenizeAndStringify(code, dinit(TokenizeOptions, $.cpp = false)));
         }
     }
+
     void vardecl35() { // #14842
         {
             const char code[] = "auto f() -> void {\n"
@@ -2867,6 +2868,18 @@ private:
                           "auto p ; p = new int ;\n"
                           "* p = 0 ;\n"
                           "}", tokenizeAndStringify(code));
+            ignore_errout();
+        }
+        {
+            const char code[] = "auto f() -> ::std::vector<int> {\n"
+                                "    int i = 0;\n"
+                                "    return { i };\n"
+                                "}";
+            ASSERT_EQUALS("auto f ( ) . :: std :: vector < int > {\n"
+                          "int i ; i = 0 ;\n"
+                          "return { i } ;\n"
+                          "}",
+                          tokenizeAndStringify(code));
             ignore_errout();
         }
     }
