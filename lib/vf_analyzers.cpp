@@ -616,6 +616,8 @@ private:
                 return Action::None;
             Action la = analyzeLifetime(lifeTok);
             if (la.matches()) {
+                if (tok->isUnaryOp("*") && tok->valueType() && lifeTok->valueType() && tok->valueType()->pointer < lifeTok->valueType()->pointer)
+                    return Action::Invalid;
                 Action a = Action::Read;
                 if (isModified(tok).isModified())
                     a = Action::Invalid;
