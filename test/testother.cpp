@@ -8368,10 +8368,18 @@ private:
               "}\n"
               "int h() {\n"
               "    return 0x1 | (0x1 | 0x2);\n"
+              "}\n"
+              "int i() {\n"
+              "    return 0x2 | (0x4 | 0x1) | 0x1;\n"
+              "}\n"
+              "int j() {\n"
+              "    return 0x2 | (0x1 | 0x4) | 0x1;\n"
               "}\n");
         ASSERT_EQUALS("[test.cpp:2:30]: (style) Same expression '0x1' found multiple times in chain of '|' operators. [duplicateExpression]\n"
                       "[test.cpp:5:23]: (style) Same expression '0x1' found multiple times in chain of '|' operators. [duplicateExpression]\n"
-                      "[test.cpp:8:23]: (style) Same expression '0x1' found multiple times in chain of '|' operators. [duplicateExpression]\n",
+                      "[test.cpp:8:23]: (style) Same expression '0x1' found multiple times in chain of '|' operators. [duplicateExpression]\n"
+                      "[test.cpp:11:23]: (style) Same expression '0x1' found multiple times in chain of '|' operators. [duplicateExpression]\n"
+                      "[test.cpp:14:23]: (style) Same expression '0x1' found multiple times in chain of '|' operators. [duplicateExpression]\n",
                       errout_str());
     }
 
