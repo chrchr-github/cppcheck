@@ -8381,6 +8381,11 @@ private:
                       "[test.cpp:11:23]: (style) Same expression '0x1' found multiple times in chain of '|' operators. [duplicateExpression]\n"
                       "[test.cpp:14:23]: (style) Same expression '0x1' found multiple times in chain of '|' operators. [duplicateExpression]\n",
                       errout_str());
+
+        check("bool f(const int** a, const int** b) {\n"
+              "    return (a[0] != nullptr) != (b[0] != nullptr);\n"
+              "}\n");
+        ASSERT_EQUALS("", errout_str());
     }
 
     void duplicateExpressionLoop() {
