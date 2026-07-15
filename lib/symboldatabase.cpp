@@ -138,8 +138,14 @@ const Token* SymbolDatabase::isEnumDefinition(const Token* tok)
     if (tok->str() == "{")
         return tok;
     tok = tok->next(); // skip ':'
-    while (Token::Match(tok, "%name%|::"))
+    bool hasType = false;
+    while (Token::Match(tok, "%name%|::")) {
+        if (tok->isName())
+            hasType = true;
         tok = tok->next();
+    }
+    if (!hasType)
+        throw InternalError(tok, "SymbolDatabase bailout; invalid enum", InternalError::SYNTAX);
     return Token::simpleMatch(tok, "{") ? tok : nullptr;
 }
 
@@ -7015,6 +7021,10 @@ void SymbolDatabase::setValueType(Token* tok, const ValueType& valuetype, const 
                 setAutoTokenProperties(autoTok);
                 if (vt2->pointer > vt.pointer)
                     vt.pointer++;
+                if (Token::simpleMatch(autoTok->next(), "&"))
+                    vt.reference = Reference::LValue;
+                if (Token::simpleMatch(autoTok->next(), "&&"))
+                    vt.reference = Reference::RValue;
                 setValueType(var1Tok, vt);
                 if (var1Tok != parent->previous())
                     setValueType(parent->previous(), vt);
@@ -7289,15 +7299,55 @@ void SymbolDatabase::setValueType(Token* tok, const ValueType& valuetype, const 
     }
 
     // c++17 auto type deduction of braced init list
-    if (parent->isCpp() && mSettings.standards.cpp >= Standards::CPP17 && vt2 && Token::Match(parent->tokAt(-2), "auto %var% {")) {
-        Token *autoTok = parent->tokAt(-2);
-        setValueType(autoTok, *vt2);
-        setAutoTokenProperties(autoTok);
-        if (parent->previous()->variable())
-            const_cast<Variable*>(parent->previous()->variable())->setValueType(*vt2);
-        else
-            debugMessage(parent->previous(), "debug", "Missing variable class for variable with varid");
-        return;
+    if (parent->isCpp() && mSettings.standards.cpp >= Standards::CPP17
+        && Token::Match(parent->astOperand1(), "%var% {") && vt2) {
+
+        auto reference = Reference::None;
+        nonneg int pointer = 0;
+        nonneg int constness = 0;
+        nonneg int volatileness = 0;
+
+        Token *varTok = parent->astOperand1();
+        Token *typeTok = varTok->previous();
+
+        while (Token::Match(typeTok, "&|&&|*|const|volatile")) {
+            if (typeTok->str() == "&")
+                reference = Reference::LValue;
+            else if (typeTok->str() == "&&")
+                reference = Reference::RValue;
+            else if (typeTok->str() == "*")
+                pointer++;
+            else if (typeTok->str() == "const")
+                constness |= 1 << pointer;
+            else if (typeTok->str() == "volatile")
+                volatileness |= 1 << pointer;
+            typeTok = typeTok->previous();
+        }
+
+        if (typeTok->str() == "auto") {
+            setValueType(typeTok, *vt2);
+            setAutoTokenProperties(typeTok);
+
+            auto *varVt = new ValueType(*vt2);
+
+            varVt->reference = reference;
+            varVt->constness |= constness;
+            varVt->volatileness |= volatileness;
+
+            if (Token::simpleMatch(typeTok->previous(), "const auto"))
+                varVt->constness |= 1 << pointer;
+
+            if (Token::simpleMatch(typeTok->previous(), "volatile auto"))
+                varVt->volatileness |= 1 << pointer;
+
+            varTok->setValueType(varVt);
+
+            if (varTok->variable())
+                const_cast<Variable*>(varTok->variable())->setValueType(*varVt);
+            else
+                debugMessage(varTok, "debug", "Missing variable class for variable with varid");
+            return;
+        }
     }
 
     if (!vt1)
@@ -7817,7 +7867,7 @@ void SymbolDatabase::setValueTypeInTokenList(bool reportDebugWarnings, Token *to
 
                 setValueType(tok, ValueType(sign, type, 0U));
             }
-        } else if (tok->isComparisonOp() || tok->tokType() == Token::eLogicalOp) {
+        } else if ((tok->isComparisonOp() || tok->tokType() == Token::eLogicalOp) && tok->astOperand1()) {
             if (tok->isCpp() && tok->isComparisonOp() && (getClassScope(tok->astOperand1()) || getClassScope(tok->astOperand2()))) {
                 const Function *function = getOperatorFunction(tok);
                 if (function) {
