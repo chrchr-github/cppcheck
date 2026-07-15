@@ -4935,6 +4935,20 @@ private:
               "    if (v > 0) {}\n"
               "}\n");
         ASSERT_EQUALS("", errout_str());
+
+        check("void f() {\n"
+              "    if (42) {}\n"
+              "    if (42U) {}\n"
+              "    if (42L) {}\n"
+              "    if (42UL) {}\n"
+              "    if (42LL) {}\n"
+              "}\n");
+        ASSERT_EQUALS("[test.cpp:2:9]: (style) Condition '42' is always true [knownConditionTrueFalse]\n"
+                      "[test.cpp:3:9]: (style) Condition '42U' is always true [knownConditionTrueFalse]\n"
+                      "[test.cpp:4:9]: (style) Condition '42L' is always true [knownConditionTrueFalse]\n"
+                      "[test.cpp:5:9]: (style) Condition '42UL' is always true [knownConditionTrueFalse]\n"
+                      "[test.cpp:6:9]: (style) Condition '42LL' is always true [knownConditionTrueFalse]\n",
+                      errout_str());
     }
 
     void alwaysTrueSymbolic()
