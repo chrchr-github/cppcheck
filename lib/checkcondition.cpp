@@ -1536,7 +1536,7 @@ void CheckConditionImpl::alwaysTrueFalse()
             }
             if (!tok->hasKnownIntValue())
                 continue;
-            const bool isZeroOrOne = (tok->getKnownIntValue() & ~MathLib::bigint(1)) == 0 ;
+            const bool isZeroOrOne = (tok->getKnownIntValue() & ~MathLib::bigint(1)) == 0;
             const Token* condition = nullptr;
             {
                 // is this a condition..
