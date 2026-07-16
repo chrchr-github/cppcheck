@@ -1536,7 +1536,6 @@ void CheckConditionImpl::alwaysTrueFalse()
             }
             if (!tok->hasKnownIntValue())
                 continue;
-            const bool isZeroOrOne = (tok->getKnownIntValue() & ~MathLib::bigint(1)) == 0;
             const Token* condition = nullptr;
             {
                 // is this a condition..
@@ -1578,12 +1577,17 @@ void CheckConditionImpl::alwaysTrueFalse()
                 continue;
             bool warnForNumber = false;
             if (Token::Match(tok, "%num%|%bool%|%char%")) {
+                const bool isZeroOrOne = (tok->getKnownIntValue() >> 1) == 0;
                 warnForNumber = !isZeroOrOne && tok->tokType() == Token::eNumber && tok->astParent() == condition->astParent();
                 if (!warnForNumber)
                     continue;
             }
-            if (Token::Match(tok, "! %num%|%bool%|%char%"))
-                continue;
+            if (Token::Match(tok, "! %num%|%bool%|%char%")) {
+                const bool isZeroOrOne = tok->next()->hasKnownIntValue() && (tok->next()->getKnownIntValue() >> 1) == 0;
+                warnForNumber = !isZeroOrOne && tok->next()->tokType() == Token::eNumber && tok->astParent() == condition->astParent();
+                if (!warnForNumber)
+                    continue;
+            }
             if (Token::Match(tok, "%oror%|&&")) {
                 bool bail = false;
                 for (const Token* op : { tok->astOperand1(), tok->astOperand2() }) {
