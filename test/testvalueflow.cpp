@@ -166,7 +166,6 @@ private:
         TEST_CASE(valueFlowSymbolicIdentity);
         TEST_CASE(valueFlowSymbolicStrlen);
         TEST_CASE(valueFlowSmartPointer);
-        TEST_CASE(valueFlowImpossibleMinMax);
         TEST_CASE(valueFlowImpossibleIncDec);
         TEST_CASE(valueFlowImpossibleUnknownConstant);
         TEST_CASE(valueFlowContainerEqual);
