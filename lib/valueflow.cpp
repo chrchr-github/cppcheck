@@ -2536,6 +2536,8 @@ static void valueFlowLifetimeFunction(Token *tok, const TokenList &tokenlist, Er
         }
         if (Function::returnsReference(f))
             return;
+        if (astIsContainerString(tok->next()) && !astIsContainerView(tok->next()))
+            return;
         std::vector<const Token*> returns = Function::findReturns(f);
         const bool inconclusive = returns.size() > 1;
         bool update = false;
