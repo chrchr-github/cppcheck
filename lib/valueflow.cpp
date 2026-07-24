@@ -3606,7 +3606,8 @@ static void valueFlowSymbolic(const TokenList& tokenlist, const SymbolDatabase& 
                 continue;
             if (tok->astOperand2()->exprId() == 0)
                 continue;
-            if (tok->astOperand2()->variable() && tok->astOperand2()->variable()->isArray() && tok->astOperand2()->variable()->getTypeName() != "std::array") // array to pointer decay
+            if (tok->astOperand2()->variable() && tok->astOperand2()->variable()->isArray() &&
+                tok->astOperand1()->valueType() && tok->astOperand1()->valueType()->pointer) // array to pointer decay
                 continue;
             if (!isConstExpression(tok->astOperand2(), settings.library))
                 continue;
