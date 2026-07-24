@@ -3552,7 +3552,13 @@ private:
               "}\n");
         ASSERT_EQUALS("[test.cpp:3:17]: (error) Buffer is accessed out of bounds: &buf[0] [bufferAccessOutOfBounds]\n", errout_str());
 
-        check("void f() {\n"
+        check("void f(FILE *fp) {\n" // #14929
+              "    std::string s;\n"
+              "    fwrite(&s, 1, 1, fp);\n"
+              "}\n");
+        ASSERT_EQUALS("", errout_str()); // don't crash
+
+        check("void f() {\n" // #14935
               "    int a[5];\n"
               "    for (int i = 0; i < 5; ++i)\n"
               "        memset(&a[i], 0, sizeof(a));\n"
