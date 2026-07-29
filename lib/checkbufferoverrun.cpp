@@ -71,6 +71,7 @@ static const ValueFlow::Value *getBufferSizeValue(const Token *tok)
     it = std::find_if(tokenValues.cbegin(), tokenValues.cend(), [](const ValueFlow::Value& v) {
         return v.isContainerSizeValue() && v.isKnown();
     });
+    return it == tokenValues.cend() ? nullptr : &*it;
 }
 
 static const Token* getRealBufferTok(const Token* tok) {
