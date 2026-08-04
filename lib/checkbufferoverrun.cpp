@@ -589,7 +589,7 @@ ValueFlow::Value CheckBufferOverrunImpl::getBufferSize(const Token *bufTok, cons
                 if (elementSize > 0) {
                     ValueFlow::Value bufSizeVal;
                     bufSizeVal.valueType = ValueFlow::Value::ValueType::BUFFER_SIZE;
-                    bufSizeVal.intvalue = value->intvalue * elementSize;                   
+                    bufSizeVal.intvalue = value->intvalue * elementSize;
                     bufSizeVal.valueKind = value->valueKind;
                     bufSizeVal.errorPath = value->errorPath;
                     return bufSizeVal;
