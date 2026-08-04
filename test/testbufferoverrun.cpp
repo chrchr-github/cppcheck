@@ -3572,6 +3572,13 @@ private:
               "    std::memcpy(&u, &s[0], sizeof(u));\n"
               "}\n");
         ASSERT_EQUALS("", errout_str());
+
+        check("void f(const std::vector<uint8_t>& s) {\n"
+              "    if (s.size() == 2) {}\n"
+              "    uint32_t u = 0;\n"
+              "    std::memcpy(&u, &s[0], sizeof(u));\n"
+              "}\n");
+        ASSERT_EQUALS("[test.cpp:4:21]: (warning) Buffer is accessed out of bounds: &s[0] [bufferAccessOutOfBounds]\n", errout_str());
     }
 
     void buffer_overrun_errorpath() {

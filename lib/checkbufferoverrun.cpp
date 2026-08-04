@@ -69,7 +69,7 @@ static const ValueFlow::Value *getBufferSizeValue(const Token *tok)
     if (it != tokenValues.cend())
         return &*it;
     it = std::find_if(tokenValues.cbegin(), tokenValues.cend(), [](const ValueFlow::Value& v) {
-        return v.isContainerSizeValue() && v.isKnown();
+        return v.isContainerSizeValue() && !v.isImpossible();
     });
     return it == tokenValues.cend() ? nullptr : &*it;
 }
@@ -589,7 +589,9 @@ ValueFlow::Value CheckBufferOverrunImpl::getBufferSize(const Token *bufTok, cons
                 if (elementSize > 0) {
                     ValueFlow::Value bufSizeVal;
                     bufSizeVal.valueType = ValueFlow::Value::ValueType::BUFFER_SIZE;
-                    bufSizeVal.intvalue = value->intvalue * elementSize;
+                    bufSizeVal.intvalue = value->intvalue * elementSize;                   
+                    bufSizeVal.valueKind = value->valueKind;
+                    bufSizeVal.errorPath = value->errorPath;
                     return bufSizeVal;
                 }
             }
@@ -723,7 +725,10 @@ void CheckBufferOverrunImpl::bufferOverflow()
 
 void CheckBufferOverrunImpl::bufferOverflowError(const Token *tok, const ValueFlow::Value *value, Certainty certainty)
 {
-    reportError(getErrorPath(tok, value, "Buffer overrun"), Severity::error, "bufferAccessOutOfBounds", "Buffer is accessed out of bounds: " + (tok ? getRealBufferTok(tok)->expressionString() : "buf"), CWE_BUFFER_OVERRUN, certainty);
+    const auto errorPath = getErrorPath(tok, value, "Buffer overrun");
+    const auto severity = !value || value->isKnown() ? Severity::error : Severity::warning;
+    const std::string msg = "Buffer is accessed out of bounds: " + (tok ? getRealBufferTok(tok)->expressionString() : "buf");
+    reportError(errorPath, severity, "bufferAccessOutOfBounds", msg, CWE_BUFFER_OVERRUN, certainty);
 }
 
 //---------------------------------------------------------------------------
