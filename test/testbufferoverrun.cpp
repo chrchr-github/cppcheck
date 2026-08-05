@@ -3600,10 +3600,18 @@ private:
               "    int a[1];\n"
               "    if (i != 2) return;\n"
               "    memset(a, 0, i * sizeof(int));\n"
+              "}"
+              "void g(int i) {\n"
+              "    int a[1];\n"
+              "    if (i != 2) {}\n"
+              "    memset(a, 0, i * sizeof(int));\n"
               "}", s);
         ASSERT_EQUALS("[test.cpp:4:12]: warning: Buffer is accessed out of bounds: a [bufferAccessOutOfBounds]\n"
                       "[test.cpp:3:11]: note: Assuming that condition 'i!=2' is not redundant\n"
-                      "[test.cpp:4:12]: note: Buffer overrun\n", errout_str());
+                      "[test.cpp:4:12]: note: Buffer overrun\n"
+                      "[test.cpp:8:12]: warning: Buffer is accessed out of bounds: a [bufferAccessOutOfBounds]\n"
+                      "[test.cpp:7:11]: note: Assuming that condition 'i!=2' is not redundant\n"
+                      "[test.cpp:8:12]: note: Buffer overrun\n", errout_str());
     }
 
     void buffer_overrun_bailoutIfSwitch() {

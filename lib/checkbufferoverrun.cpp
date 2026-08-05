@@ -636,17 +636,19 @@ static bool checkBufferSize(const Token *ftok, const Library::ArgumentChecks::Mi
         }
         break;
     case Library::ArgumentChecks::MinSize::Type::ARGVALUE: {
-        if (arg && arg->hasKnownIntValue()) {
-            MathLib::bigint myMinsize = arg->getKnownIntValue();
+        if (arg) {
+            const ValueFlow::Value* argVal = arg->hasKnownIntValue() ? &arg->values().front() : arg->getMaxValue(true);
+            if (!argVal)
+                break;
+            MathLib::bigint myMinsize = argVal->intvalue;
             const int baseSize = tokenizer->sizeOfType(minsize.baseType);
             if (baseSize != 0)
                 myMinsize *= baseSize;
             const bool ok = myMinsize <= bufferSize.intvalue;
             if (!ok) {
-                if (bufferSize.errorPath.empty())
-                    bufferSize.errorPath = arg->values().front().errorPath;
+                bufferSize.errorPath.insert(bufferSize.errorPath.end(), argVal->errorPath.begin(), argVal->errorPath.end());
                 if (!bufferSize.condition)
-                    bufferSize.condition = arg->values().front().condition;
+                    bufferSize.condition = argVal->condition;
             }
             return ok;
         }
