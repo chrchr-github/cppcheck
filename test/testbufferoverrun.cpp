@@ -3572,13 +3572,6 @@ private:
               "    std::memcpy(&u, &s[0], sizeof(u));\n"
               "}\n");
         ASSERT_EQUALS("", errout_str());
-
-        check("void f(const std::vector<uint8_t>& s) {\n"
-              "    if (s.size() == 2) {}\n"
-              "    uint32_t u = 0;\n"
-              "    std::memcpy(&u, &s[0], sizeof(u));\n"
-              "}\n");
-        ASSERT_EQUALS("[test.cpp:4:21]: (warning) Buffer is accessed out of bounds: &s[0] [bufferAccessOutOfBounds]\n", errout_str());
     }
 
     void buffer_overrun_errorpath() {
@@ -3593,6 +3586,24 @@ private:
         ASSERT_EQUALS("[test.cpp:3:12]: error: Buffer is accessed out of bounds: p [bufferAccessOutOfBounds]\n"
                       "[test.cpp:2:13]: note: Assign p, buffer with size 10\n"
                       "[test.cpp:3:12]: note: Buffer overrun\n", errout_str());
+
+        check("void f(const std::vector<uint8_t>& s) {\n"
+              "    if (s.size() == 2) {}\n"
+              "    uint32_t u = 0;\n"
+              "    std::memcpy(&u, &s[0], sizeof(u));\n"
+              "}\n", s);
+        ASSERT_EQUALS("[test.cpp:4:21]: warning: Buffer is accessed out of bounds: &s[0] [bufferAccessOutOfBounds]\n"
+                      "[test.cpp:2:18]: note: Assuming that condition 's.size()==2' is not redundant\n"
+                      "[test.cpp:4:21]: note: Buffer overrun\n", errout_str());
+
+        check("void f(int i) {\n" // #14960
+              "    int a[1];\n"
+              "    if (i != 2) return;\n"
+              "    memset(a, 0, i * sizeof(int));\n"
+              "}", s);
+        ASSERT_EQUALS("[test.cpp:4:12]: warning: Buffer is accessed out of bounds: a [bufferAccessOutOfBounds]\n"
+                      "[test.cpp:3:11]: note: Assuming that condition 'i!=2' is not redundant\n"
+                      "[test.cpp:4:12]: note: Buffer overrun\n", errout_str());
     }
 
     void buffer_overrun_bailoutIfSwitch() {
