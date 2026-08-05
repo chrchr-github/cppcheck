@@ -3241,7 +3241,7 @@ private:
               "}\n");
         ASSERT_EQUALS("", errout_str());
 
-        check("std::unique_ptr<int> g_p;\n" // #14568
+        check("std::unique_ptr<int> g_p;\n" // #14958
               "int* f() {\n"
               "    std::unique_ptr<int> tmp = std::make_unique<int>();\n"
               "    int* p = tmp.get();\n"
