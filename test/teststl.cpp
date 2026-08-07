@@ -42,7 +42,7 @@ private:
         TEST_CASE(outOfBoundsSymbolic);
         TEST_CASE(outOfBoundsIndexExpression);
         TEST_CASE(outOfBoundsIterator);
-        TEST_CASE(outOfBoundsErrorPath;
+        TEST_CASE(outOfBoundsErrorPath);
 
         TEST_CASE(iterator1);
         TEST_CASE(iterator2);
