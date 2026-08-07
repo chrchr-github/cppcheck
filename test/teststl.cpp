@@ -1126,8 +1126,10 @@ private:
     }
 
     void outOfBoundsErrorPath() {
+        setMultiline();
         Settings s = settings;
         s.templateLocation = "{file}:{line}:note:{info}";
+
         check("int f(int i) {\n"
                     "    std::string s = \"abc\";\n"
                     "    if (i > 5)\n"
