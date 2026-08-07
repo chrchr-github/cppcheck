@@ -1384,11 +1384,6 @@ If you want to check all files, you can append `:all` to the coding standard. Ex
 
 ## Compliance report
 
-### Graphical user interface
-
-Run a analysis with some coding standards enabled. After that you can click on
-the `Compliance report...` in the `File` menu.
-
 ### Command line
 
 There is a tool `compliance-report` that is distributed with Cppcheck Premium. To see
