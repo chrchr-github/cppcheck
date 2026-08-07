@@ -1131,11 +1131,11 @@ private:
         s.templateLocation = "{file}:{line}:note:{info}";
 
         check("int f(int i) {\n"
-                    "    std::string s = \"abc\";\n"
-                    "    if (i > 5)\n"
-                    "        return 0;\n"
-                    "    return s[i];\n"
-                    "}\n", s);
+              "    std::string s = \"abc\";\n"
+              "    if (i > 5)\n"
+              "        return 0;\n"
+              "    return s[i];\n"
+              "}\n", s);
         ASSERT_EQUALS("[test.cpp:5:13]: warning: Either the condition 'i>5' is redundant or 'i' can have the value 5. Expression 's[i]' causes access out of bounds. [containerOutOfBounds]\n"
                       "[test.cpp:3:11]: note: Assuming that condition 'i>5' is not redundant\n"
                       "[test.cpp:5:13]: note: Access out of bounds\n",
