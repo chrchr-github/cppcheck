@@ -234,6 +234,7 @@ private:
         TEST_CASE(simplifyTypedef161);
         TEST_CASE(simplifyTypedef162);
         TEST_CASE(simplifyTypedef163);
+        TEST_CASE(simplifyTypedef164);
 
         TEST_CASE(simplifyTypedefFunction1);
         TEST_CASE(simplifyTypedefFunction2); // ticket #1685
@@ -255,6 +256,7 @@ private:
 
         TEST_CASE(simplifyTypedefOriginalName1);
         TEST_CASE(simplifyTypedefOriginalName2);
+        TEST_CASE(simplifyTypedefOriginalName3);
 
         TEST_CASE(simplifyTypedefTokenColumn1);
         TEST_CASE(simplifyTypedefTokenColumn2);
@@ -3874,6 +3876,14 @@ private:
         ASSERT_THROW_INTERNAL(tok(code), INTERNAL);
     }
 
+    void simplifyTypedef164() {
+        const char code[] = "typedef struct D{x;}y y;";
+        ASSERT_THROW_INTERNAL(tok(code), INTERNAL);
+
+        const char code2[] = "typedef struct { int t; } t;"; // #14966
+        ASSERT_EQUALS("struct t { int t ; } ;", tok(code2));
+    }
+
     void simplifyTypedefFunction1() {
         {
             const char code[] = "typedef void (*my_func)();\n"
@@ -4591,6 +4601,21 @@ private:
             ASSERT_EQUALS_MSG(false, true, "Validation of Tokenizer failed");
         }
         const Token* token = Token::findsimplematch(tokenizer.list.front(), "short");
+        ASSERT_EQUALS("A", token->originalName());
+    }
+
+    void simplifyTypedefOriginalName3() {
+        const char code[] = "void f(void) {\n"
+                            "    typedef int A;\n"
+                            "    A a;\n"
+                            "}\n";
+        TokenList tokenlist{ settings1, Standards::Language::C };
+        ASSERT(TokenListHelper::createTokensFromString(tokenlist, code, "file.c"));
+        TokenizerTest tokenizer(std::move(tokenlist), *this);
+        tokenizer.createLinks();
+        tokenizer.simplifyTypedef();
+        ASSERT_NO_THROW(tokenizer.validate());
+        const Token* token = Token::findsimplematch(tokenizer.list.front(), "int");
         ASSERT_EQUALS("A", token->originalName());
     }
 

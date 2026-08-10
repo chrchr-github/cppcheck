@@ -563,6 +563,27 @@ namespace {
             if (Token::simpleMatch(start, "typename"))
                 start = start->next();
 
+            const auto checkForRecursion = [this]() {
+                if (Token::Match(mTypedefToken, "typedef %name% %name% ;"))
+                    return;
+                int nBraces = 0;
+                for (const Token *tok = mTypedefToken; tok != mEndToken; tok = tok->next()) {
+                    if (tok->str() == "{")
+                        ++nBraces;
+                    else if (tok->str() == "}")
+                        --nBraces;
+                    if (tok == mNameToken)
+                        continue;
+                    if (tok->str() != mNameToken->str())
+                        continue;
+                    if (nBraces > 0 && Token::simpleMatch(tok->next(), ";"))
+                        continue;
+                    if (Token::Match(tok->previous(), "struct|class|enum|union"))
+                        continue;
+                    throw InternalError(tok, "recursive typedef encountered");
+                }
+            };
+
             // TODO handle unnamed structs etc
             if (Token::Match(start, "const| enum|struct|union|class %name%| {")) {
                 const std::pair<const Token*, Token*> rangeBefore(start, Token::findsimplematch(start, "{"));
@@ -585,23 +606,10 @@ namespace {
                     }
                     mNameToken = nameTok;
                     mEndToken = nameTok->next();
+                    checkForRecursion();
                     return;
                 }
             }
-
-            const auto checkForRecursion = [this]() {
-                if (Token::Match(mTypedefToken, "typedef %name% %name% ;"))
-                    return;
-                for (const Token *tok = mTypedefToken; tok != mEndToken; tok = tok->next()) {
-                    if (tok == mNameToken)
-                        continue;
-                    if (tok->str() != mNameToken->str())
-                        continue;
-                    if (Token::Match(tok->previous(), "struct|class|enum|union"))
-                        continue;
-                    throw InternalError(tok, "recursive typedef encountered");
-                }
-            };
 
             for (Token* type = start; Token::Match(type, "%name%|*|&|&&"); type = type->next()) {
                 if (type != start && Token::Match(type, "%name% ;") && !type->isStandardType()) {
@@ -2043,6 +2051,7 @@ void Tokenizer::simplifyTypedefCpp()
                         tok2->previous()->str("typedef");
                         tok2->insertToken(tok2->str());
                     }
+                    tok2->originalName(tok2->str());
                     tok2->str(typeStart->str());
 
                     // restore qualification if it was removed
@@ -4548,7 +4557,7 @@ static void setVarIdStructMembers(Token *&tok1,
         return;
     }
 
-    while (Token::Match(tok->next(), ")| . %name% !!(")) {
+    while (Token::Match(tok->next(), ")| . %name%")) {
         // Don't set varid for trailing return type
         if (tok->strAt(1) == ")" && Token::Match(tok->linkAt(1)->tokAt(-1), "%name%|]") && !tok->linkAt(1)->tokAt(-1)->isKeyword() &&
             TokenList::isFunctionHead(tok->linkAt(1), "{;")) {
@@ -4570,6 +4579,8 @@ static void setVarIdStructMembers(Token *&tok1,
         std::map<std::string, nonneg int>& members = structMembers[struct_varid];
         const auto it = utils::as_const(members).find(tok->str());
         if (it == members.cend()) {
+            if (Token::Match(tok, "%name% ("))
+                break;
             members[tok->str()] = ++varId;
             tok->varId(varId);
         } else {
@@ -5161,8 +5172,10 @@ static Token * matchMemberName(const std::list<std::string> &scope, const Token 
 
     // Current scope..
     for (auto it = scope.cbegin(); it != scope.cend(); ++it) {
-        if (scopeIt == scopeInfo.cend() || scopeIt->name != *it)
-            return nullptr;
+        if (scopeIt == scopeInfo.cend() || scopeIt->name != *it) {
+            scopeIt = scopeInfo.cbegin();
+            break;
+        }
         ++scopeIt;
     }
 
@@ -5266,7 +5279,16 @@ void Tokenizer::setVarIdPass2()
         std::map<const Token *, std::string> endOfScope;
         std::list<std::string> scope;
         std::list<const Token *> usingnamespaces;
+        const Token *enumEnd = nullptr;
         for (Token *tok = list.front(); tok; tok = tok->next()) {
+            if (isEnumStart(tok)) {
+                enumEnd = tok->link();
+                continue;
+            }
+            if (tok == enumEnd) {
+                enumEnd = nullptr;
+                continue;
+            }
             if (!tok->previous() || Token::Match(tok->previous(), "[;{}]")) {
                 if (Token::Match(tok, "using namespace %name% ::|;")) {
                     Token *endtok = tok->tokAt(2);
@@ -5296,7 +5318,8 @@ void Tokenizer::setVarIdPass2()
                 tok = tok->next()->findClosingBracket()->next();
             else if (usingnamespaces.empty() || tok->varId() || !tok->isName() || tok->isStandardType() || tok->tokType() == Token::eKeyword || tok->tokType() == Token::eBoolean ||
                      Token::Match(tok->previous(), ".|namespace|class|struct|&|&&|*|> %name%") || Token::Match(tok->previous(), "%type%| %name% ( %type%|)") || Token::Match(tok, "public:|private:|protected:") ||
-                     (!tok->next() && Token::Match(tok->previous(), "}|; %name%")))
+                     (!tok->next() && Token::Match(tok->previous(), "}|; %name%")) ||
+                     (enumEnd && Token::Match(tok->previous(), "{|, %name% =|,|}")))
                 continue;
 
             if (tok->strAt(-1) == "::" && tok->tokAt(-2) && tok->tokAt(-2)->isName())
@@ -8809,6 +8832,9 @@ void Tokenizer::findGarbageCode() const
         else if (Token::Match(tok, "!!) %num%|%str%|%char% %assign%|++|--")) {
             if (!cpp || mSettings.standards.cpp < Standards::CPP20 || !Token::Match(tok->previous(), "%name% : %num% ="))
                 syntaxError(tok, tok->strAt(1) + " " + tok->strAt(2));
+        }
+        else if (!cpp && Token::Match(tok, "++|-- ++|--")) {
+            syntaxError(tok, tok->str() + tok->strAt(1));
         }
         else if (Token::simpleMatch(tok, ") return") && !Token::Match(tok->link()->previous(), "if|while|for (")) {
             if (tok->link()->previous() && tok->link()->previous()->isUpperCaseName())
