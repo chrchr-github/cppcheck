@@ -576,7 +576,7 @@ namespace {
                         continue;
                     if (tok->str() != mNameToken->str())
                         continue;
-                    if (nBraces > 0 && Token::simpleMatch(tok->next(), ";"))
+                    if (nBraces > 0 && Token::Match(tok->next(), "[;(]"))
                         continue;
                     if (Token::Match(tok->previous(), "struct|class|enum|union"))
                         continue;
