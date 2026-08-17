@@ -3764,7 +3764,7 @@ void Tokenizer::concatenateNegativeNumberAndAnyPositive()
 
         if (tok->findOpeningBracket())
             continue;
-        
+
         if (!tok->tokAt(2) || (tok->tokAt(2)->isOp() && !Token::Match(tok->tokAt(2), "[+-]")))
             syntaxError(tok);
 
