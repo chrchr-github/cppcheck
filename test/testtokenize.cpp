@@ -1324,8 +1324,8 @@ private:
                       "return ;\n"
                       "}", tokenizeAndStringify(code));
         ASSERT_EQUALS(
-            "[test.cpp:5:1]: (debug) valueflow.cpp:5426:valueFlowForLoopSimplifyAfter bailout: For loop variable bailout on escape statement [valueFlowBailout]\n"
-            "[test.cpp:5:1]: (debug) valueflow.cpp:5426:valueFlowForLoopSimplifyAfter bailout: For loop variable bailout on escape statement [valueFlowBailout]\n",
+            "[test.cpp:5:1]: (debug) valueflow.cpp:5427:valueFlowForLoopSimplifyAfter bailout: For loop variable bailout on escape statement [valueFlowBailout]\n"
+            "[test.cpp:5:1]: (debug) valueflow.cpp:5427:valueFlowForLoopSimplifyAfter bailout: For loop variable bailout on escape statement [valueFlowBailout]\n",
             errout_str());
     }
 
