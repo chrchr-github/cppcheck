@@ -969,6 +969,21 @@ static bool isPrefixUnary(const Token* tok, bool cpp)
     return tok->strAt(-1) == ")" && iscast(tok->linkAt(-1), cpp);
 }
 
+template<class T, REQUIRES("T must be a Token class", std::is_convertible<T*, const Token*> )>
+static T* skipTrailingReturnType(T* tok)
+{
+    if (!Token::simpleMatch(tok, "."))
+        return tok;
+    tok = tok->next();
+    while (Token::Match(tok, "%type%|%name%|::|&|&&|*|<|(")) {
+        if (tok->link())
+            tok = tok->link()->next();
+        else
+            tok = tok->next();
+    }
+    return tok;
+}
+
 /**
  * @throws InternalError thrown if unexpected tokens are encountered
  */
@@ -1063,15 +1078,7 @@ static void compilePrecedence2(Token *&tok, AST_state& state)
                     }
                 } else {
                     Token* curlyBracket = squareBracket->link()->next();
-                    if (Token::simpleMatch(curlyBracket, ".")) { // trailing return type
-                        curlyBracket = curlyBracket->next();
-                        while (Token::Match(curlyBracket, "%type%|%name%|::|&|&&|*|<|(")) {
-                            if (curlyBracket->link())
-                                curlyBracket = curlyBracket->link()->next();
-                            else
-                                curlyBracket = curlyBracket->next();
-                        }
-                    }
+                    curlyBracket = skipTrailingReturnType(curlyBracket);
                     if (!Token::simpleMatch(curlyBracket, "{"))
                         throw InternalError(tok, "Syntax error in lambda", InternalError::AST);
                     squareBracket->astOperand1(curlyBracket);
@@ -1518,15 +1525,7 @@ const Token* findLambdaEndTokenWithoutAST(const Token* tok) {
         tok = tok->link()->next();
     if (Token::simpleMatch(tok, "mutable"))
         tok = tok->next();
-    if (Token::Match(tok, ".|->")) { // trailing return type
-        tok = tok->next();
-        while (Token::Match(tok, "%type%|%name%|::|&|&&|*|<|(")) {
-            if (tok->link())
-                tok = tok->link()->next();
-            else
-                tok = tok->next();
-        }
-    }
+    tok = skipTrailingReturnType(tok);
     if (!(Token::simpleMatch(tok, "{") && tok->link()))
         return nullptr;
     return tok->link()->next();
