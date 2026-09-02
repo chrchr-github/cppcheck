@@ -1013,7 +1013,7 @@ static void compilePrecedence2(Token *&tok, AST_state& state)
             else
                 compileUnaryOp(tok, state, compileScope);
         } else if (tok->str() == "[") {
-            if (state.cpp && isPrefixUnary(tok, /*cpp*/ true) && Token::Match(tok->link(), "] (|{|<")) { // Lambda
+            if (state.cpp && isPrefixUnary(tok, /*cpp*/ true) && Token::Match(tok->link(), "] [({<.]")) { // Lambda
                 // What we do here:
                 // - Nest the round bracket under the square bracket.
                 // - Nest what follows the lambda (if anything) with the lambda opening [
@@ -1062,7 +1062,18 @@ static void compilePrecedence2(Token *&tok, AST_state& state)
                         continue;
                     }
                 } else {
-                    Token* const curlyBracket = squareBracket->link()->next();
+                    Token* curlyBracket = squareBracket->link()->next();
+                    if (Token::simpleMatch(curlyBracket, ".")) { // trailing return type
+                        curlyBracket = curlyBracket->next();
+                        while (Token::Match(curlyBracket, "%type%|%name%|::|&|&&|*|<|(")) {
+                            if (curlyBracket->link())
+                                curlyBracket = curlyBracket->link()->next();
+                            else
+                                curlyBracket = curlyBracket->next();
+                        }
+                    }
+                    if (!Token::simpleMatch(curlyBracket, "{"))
+                        throw InternalError(tok, "Syntax error in lambda", InternalError::AST);
                     squareBracket->astOperand1(curlyBracket);
                     state.op.push(squareBracket);
                     tok = curlyBracket->link() ? curlyBracket->link()->next() : nullptr;
