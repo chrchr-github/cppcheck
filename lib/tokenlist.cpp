@@ -972,7 +972,7 @@ static bool isPrefixUnary(const Token* tok, bool cpp)
 template<class T, REQUIRES("T must be a Token class", std::is_convertible<T*, const Token*> )>
 static T* skipTrailingReturnType(T* tok)
 {
-    if (!Token::simpleMatch(tok, "."))
+    if (!Token::Match(tok, ".|->")) // TODO: fix simplification (see garbageCode228)
         return tok;
     tok = tok->next();
     while (Token::Match(tok, "%type%|%name%|::|&|&&|*|<|(")) {
