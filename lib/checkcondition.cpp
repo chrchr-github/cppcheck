@@ -1876,7 +1876,7 @@ static bool checkBoolConditionalAssign(const Token* condTok, const Token* assign
         const MathLib::bigint compVal = varTok->astSibling()->getKnownIntValue();
         if (compVal < 0 || compVal > 1)
             return false;
-        isNegation = condTok->str() == "!=" == (compVal == 1);
+        isNegation = (condTok->str() == "!=") == (compVal == 1);
     }
     isRedundant = (isNegation && val == 0) || (!isNegation && val == 1);
     return true;
