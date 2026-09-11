@@ -11463,7 +11463,8 @@ private:
               "}\n");
 
         ASSERT_EQUALS("", errout_str());
-                check("int g();\n" // #15023
+
+        check("int g();\n" // #15023
               "int f1() {\n"
               "    int i{ g() };\n"
               "    i = 0;\n"
