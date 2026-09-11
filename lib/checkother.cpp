@@ -599,7 +599,7 @@ static bool isAssignment(const Token* tok) {
         return false;
     if (tok->isAssignmentOp() || tok->tokType() == Token::eIncDecOp)
         return true;
-	return Token::Match(tok, "[{(]") && tok->astOperand1()->variable() && tok->astOperand1() == tok->astOperand1()->variable()->nameToken();
+    return Token::Match(tok, "[{(]") && tok->astOperand1()->variable() && tok->astOperand1() == tok->astOperand1()->variable()->nameToken();
 }
 
 void CheckOtherImpl::checkRedundantAssignment()
@@ -646,7 +646,7 @@ void CheckOtherImpl::checkRedundantAssignment()
                 });
                 if (trivial)
                     continue;
-                }
+            }
 
             const Token* rhs = tok->astOperand2();
             // Do not warn about assignment with 0 / NULL
