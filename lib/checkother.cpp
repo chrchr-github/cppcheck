@@ -594,7 +594,7 @@ void CheckOtherImpl::invalidPointerCastError(const Token* tok, const std::string
 // Detect redundant assignments: x = 0; x = 4;
 //---------------------------------------------------------------------------
 
-static bool isAssignment(const Token* tok) {
+static bool isAssignmentOrInit(const Token* tok) {
     if (tok->astParent() || !tok->astOperand1())
         return false;
     if (tok->isAssignmentOp() || tok->tokType() == Token::eIncDecOp)
@@ -622,7 +622,7 @@ void CheckOtherImpl::checkRedundantAssignment()
             if (Token::simpleMatch(tok, "try {"))
                 // todo: check try blocks
                 tok = tok->linkAt(1);
-            if (!isAssignment(tok))
+            if (!isAssignmentOrInit(tok))
                 continue;
 
             // Do not warn about redundant initialization when rhs is trivial
