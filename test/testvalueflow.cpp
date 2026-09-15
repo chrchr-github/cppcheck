@@ -4286,7 +4286,7 @@ private:
                "}\n";
         auto values = tokenValues(code, "s :", ValueFlow::Value::ValueType::FLOAT);
         ASSERT_EQUALS(0, values.size());
-        
+
         code = "int a[5];\n" // 15034
                "int g(int i) {\n"
                "    return a[i < 0 ? -i : i];\n"
