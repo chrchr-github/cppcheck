@@ -1838,7 +1838,7 @@ private:
         ASSERT_EQUALS(3 * settings.platform.sizeof_int, values.back().intvalue);
         ASSERT_EQUALS_ENUM(ValueFlow::Value::ValueKind::Known, values.back().valueKind);
 
-        code = "int f(char c) {\n" // #15037
+        code = "int f(char c) {\n" // #15033
                "    return sizeof(+c);\n"
                "}\n";
         values = tokenValues(code, "( +");
