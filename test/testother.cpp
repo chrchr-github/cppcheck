@@ -927,6 +927,7 @@ private:
                       "[test.cpp:7:14]: note: Division by zero\n"
                       "[test.cpp:13:14]: warning: Division by zero. [zerodivcond]\n"
                       "[test.cpp:12:13]: note: Assignment 'j=0', assigned value is 0\n"
+                      "[test.cpp:11:9]: note: Assuming condition is true\n"
                       "[test.cpp:13:14]: note: Division by zero\n", errout_str());
     }
 
