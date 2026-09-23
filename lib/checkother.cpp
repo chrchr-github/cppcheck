@@ -3571,7 +3571,7 @@ void CheckOtherImpl::negativeBitwiseShiftError(const Token *tok, bool isLHS, con
     // is used often in a project and works as expected then this is
     // a portability issue
     const char* id = isLHS ? "shiftNegativeLHS" : "shiftNegative";
-	const std::string msg = isLHS ? "Shifting a negative value is technically undefined behaviour" : "Shifting by a negative value is undefined behaviour";
+    const std::string msg = isLHS ? "Shifting a negative value is technically undefined behaviour" : "Shifting by a negative value is undefined behaviour";
     const Severity severity = isLHS ? Severity::portability : (v && v->errorSeverity() && !v->conditional ? Severity::error : Severity::warning);
     const ErrorPath errorPath = getErrorPath(tok, v, msg);
     reportError(errorPath, severity, id, msg, CWE758, Certainty::normal);
@@ -4934,8 +4934,8 @@ void CheckOther::getErrorMessages(ErrorLogger& errorLogger, const Settings &sett
     c.zerodivError(nullptr, nullptr);
     c.misusedScopeObjectError(nullptr, "varname");
     c.invalidPointerCastError(nullptr,  "float *", "double *", false, false);
-    c.negativeBitwiseShiftError(nullptr, 1);
-    c.negativeBitwiseShiftError(nullptr, 2);
+    c.negativeBitwiseShiftError(nullptr, true);
+    c.negativeBitwiseShiftError(nullptr, false);
     c.raceAfterInterlockedDecrementError(nullptr);
     c.invalidFreeError(nullptr, "malloc", false);
     c.overlappingWriteUnion(nullptr);
