@@ -2455,7 +2455,7 @@ private:
               "    if (it == v.end()) {}\n"
               "    v.erase(it);\n"
               "}\n");
-        ASSERT_EQUALS("[test.cpp:3:7]: (warning) Either the condition 'it==v.end()' is redundant or function 'erase()' is called on the iterator 'it' which is out of bounds. [eraseIteratorOutOfBoundsCond]\n",
+        ASSERT_EQUALS("[test.cpp:2:12] -> [test.cpp:3:7]: (warning) Either the condition 'it==v.end()' is redundant or function 'erase()' is called on the iterator 'it' which is out of bounds. [eraseIteratorOutOfBoundsCond]\n",
                       errout_str());
 
         check("void f() {\n"
