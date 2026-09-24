@@ -9169,11 +9169,14 @@ void Tokenizer::findGarbageCode() const
         if (Token::simpleMatch(tok, "::")) {
             if (!Token::Match(tok->next(), "%name%|*|~") || (tok->next()->isKeyword() && !Token::Match(tok->next(), "new|delete|operator")))
                 syntaxError(tok);
-            if (Token::simpleMatch(tok->tokAt(-1), ")") && !Token::simpleMatch(tok->linkAt(-1)->tokAt(-1), "decltype (")) {
-                if (tok->linkAt(-1)->tokAt(-1) && tok->linkAt(-1)->tokAt(-1)->isUpperCaseName())
-                    unknownMacroError(tok);
-                else
-                    syntaxError(tok);
+            if (Token::simpleMatch(tok->tokAt(-1), ")")) {
+                const Token* const prev = tok->linkAt(-1)->tokAt(-1);
+                if (!Token::Match(prev, "%name% (") || (!prev->isControlFlowKeyword() && prev->str() != "decltype")) {
+                    if (prev && prev->isUpperCaseName())
+                        unknownMacroError(prev);
+                    else
+                        syntaxError(tok);
+                }
             }
         }
         if (Token::Match(tok, "& %comp%|&&|%oror%|&|%or%") && tok->strAt(1) != ">")
