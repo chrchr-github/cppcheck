@@ -1178,7 +1178,7 @@ static void valueFlowImpossibleValues(TokenList& tokenList, const Settings& sett
             ValueFlow::Value value{0};
             value.setImpossible();
             setTokenValue(tok, std::move(value), settings);
-        } else if (tok->function()) {
+        } else if (tok->function() && tok->scope()->isExecutable()) {
             ValueFlow::Value value{0};
             value.setImpossible();
             setTokenValue(tok, std::move(value), settings);
