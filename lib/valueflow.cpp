@@ -691,44 +691,6 @@ static void valueFlowArray(TokenList& tokenlist, const Settings& settings)
     }
 }
 
-static bool isNonZero(const Token* tok)
-{
-    return tok && (!tok->hasKnownIntValue() || tok->getKnownIntValue() != 0);
-}
-
-static void valueFlowArrayBool(TokenList& tokenlist, const Settings& settings)
-{
-    for (Token* tok = tokenlist.front(); tok; tok = tok->next()) {
-        if (tok->hasKnownIntValue())
-            continue;
-        const Variable* var = nullptr;
-        bool known = false;
-        const auto val =
-            std::find_if(tok->values().cbegin(), tok->values().cend(), std::mem_fn(&ValueFlow::Value::isTokValue));
-        if (val == tok->values().end()) {
-            var = tok->variable();
-            known = true;
-        } else {
-            var = val->tokvalue->variable();
-            known = val->isKnown();
-        }
-        if (!var)
-            continue;
-        if (!var->isArray() || var->isArgument() || var->isStlType())
-            continue;
-        if (isNonZero(tok->astSibling()) && Token::Match(tok->astParent(), "%comp%"))
-            continue;
-        // TODO: Check for function argument
-        if ((astIsBool(tok->astParent()) && !Token::Match(tok->astParent(), "(|%name%")) ||
-            (tok->astParent() && Token::Match(tok->astParent()->previous(), "if|while|for ("))) {
-            ValueFlow::Value value{1};
-            if (known)
-                value.setKnown();
-            setTokenValue(tok, std::move(value), settings);
-        }
-    }
-}
-
 static void valueFlowArrayElement(TokenList& tokenlist, const Settings& settings)
 {
     for (Token* tok = tokenlist.front(); tok; tok = tok->next()) {
