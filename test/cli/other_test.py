@@ -190,8 +190,6 @@ def test_progress(tmpdir):
             "progress: ValueFlow::valueFlowCondition(SymbolicConditionHandler{}, tokenlist, symboldatabase, errorLogger, settings, skippedFunctions) 1 100%\n"
             "progress: ValueFlow::valueFlowSymbolicInfer(symboldatabase, settings) 1 0%\n"
             "progress: ValueFlow::valueFlowSymbolicInfer(symboldatabase, settings) 1 100%\n"
-            "progress: ValueFlow::valueFlowArrayBool(tokenlist, settings) 1 0%\n"
-            "progress: ValueFlow::valueFlowArrayBool(tokenlist, settings) 1 100%\n"
             "progress: ValueFlow::valueFlowArrayElement(tokenlist, settings) 1 0%\n"
             "progress: ValueFlow::valueFlowArrayElement(tokenlist, settings) 1 100%\n"
             "progress: ValueFlow::valueFlowRightShift(tokenlist, settings) 1 0%\n"
