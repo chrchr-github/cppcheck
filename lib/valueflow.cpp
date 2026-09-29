@@ -696,19 +696,6 @@ static bool isNonZero(const Token* tok)
     return tok && (!tok->hasKnownIntValue() || tok->getKnownIntValue() != 0);
 }
 
-static const Token* getOtherOperand(const Token* tok)
-{
-    if (!tok)
-        return nullptr;
-    if (!tok->astParent())
-        return nullptr;
-    if (tok->astParent()->astOperand1() != tok)
-        return tok->astParent()->astOperand1();
-    if (tok->astParent()->astOperand2() != tok)
-        return tok->astParent()->astOperand2();
-    return nullptr;
-}
-
 static void valueFlowArrayBool(TokenList& tokenlist, const Settings& settings)
 {
     for (Token* tok = tokenlist.front(); tok; tok = tok->next()) {
@@ -729,7 +716,7 @@ static void valueFlowArrayBool(TokenList& tokenlist, const Settings& settings)
             continue;
         if (!var->isArray() || var->isArgument() || var->isStlType())
             continue;
-        if (isNonZero(getOtherOperand(tok)) && Token::Match(tok->astParent(), "%comp%"))
+        if (isNonZero(tok->astSibling()) && Token::Match(tok->astParent(), "%comp%"))
             continue;
         // TODO: Check for function argument
         if ((astIsBool(tok->astParent()) && !Token::Match(tok->astParent(), "(|%name%")) ||
