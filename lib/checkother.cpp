@@ -2575,8 +2575,8 @@ void CheckOtherImpl::zerodivError(const Token *tok, const ValueFlow::Value *valu
         errmsg << "Division by zero.";
 
     reportError(std::move(errorPath),
-                value->errorSeverity() ? Severity::error : Severity::warning,
-                value->condition ? "zerodivcond" : "zerodiv",
+                (value->errorSeverity() && !value->conditional) ? Severity::error : Severity::warning,
+                (value->condition || value->conditional) ? "zerodivcond" : "zerodiv",
                 errmsg.str(), CWE369, value->isInconclusive() ? Certainty::inconclusive : Certainty::normal);
 }
 
@@ -2932,9 +2932,11 @@ isStaticAssert(const Settings &settings, const Token *tok)
         return true;
     }
 
-    if (tok->isC() && settings.standards.c >= Standards::C11 &&
-        Token::simpleMatch(tok, "_Static_assert")) {
-        return true;
+    if (tok->isC()) {
+        if (settings.standards.c >= Standards::C11 && Token::simpleMatch(tok, "_Static_assert"))
+            return true;
+        if (settings.standards.c >= Standards::C23 && Token::simpleMatch(tok, "static_assert"))
+            return true;
     }
 
     return false;
@@ -4518,18 +4520,16 @@ void CheckOtherImpl::checkComparePointers()
             if (const Token* parent1 = getParentLifetime(v1.tokvalue, mSettings.library))
                 if (var2 == parent1->variable())
                     continue;
-            comparePointersError(tok, &v1, &v2);
+            comparePointersError(tok, &v1, &v2, Token::simpleMatch(tok, "-"));
         }
     }
 }
 
-void CheckOtherImpl::comparePointersError(const Token *tok, const ValueFlow::Value *v1, const ValueFlow::Value *v2)
+void CheckOtherImpl::comparePointersError(const Token *tok, const ValueFlow::Value *v1, const ValueFlow::Value *v2, bool subtract)
 {
     ErrorPath errorPath;
-    std::string verb = "Comparing";
-    if (Token::simpleMatch(tok, "-"))
-        verb = "Subtracting";
-    const char * const id = (verb[0] == 'C') ? "comparePointers" : "subtractPointers";
+    const std::string verb = subtract ? "Subtracting" : "Comparing";
+    const char * const id = subtract ? "subtractPointers" : "comparePointers";
     if (v1) {
         errorPath.emplace_back(v1->tokvalue->variable()->nameToken(), "Variable declared here.");
         errorPath.insert(errorPath.end(), v1->errorPath.cbegin(), v1->errorPath.cend());
@@ -4998,8 +4998,8 @@ void CheckOther::getErrorMessages(ErrorLogger& errorLogger, const Settings &sett
     c.shadowError(nullptr, "local variable", nullptr, "member");
     c.knownArgumentError(nullptr, nullptr, nullptr, "x", false);
     c.knownPointerToBoolError(nullptr, nullptr);
-    c.comparePointersError(nullptr, nullptr, nullptr);
-    // TODO: subtractPointers
+    c.comparePointersError(nullptr, nullptr, nullptr, false);
+    c.comparePointersError(nullptr, nullptr, nullptr, true);
     c.redundantAssignmentError(nullptr, nullptr, "var", false);
     c.redundantInitializationError(nullptr, nullptr, "var", false);
     c.redundantContinueError(nullptr);
