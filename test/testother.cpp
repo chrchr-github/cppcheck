@@ -11501,7 +11501,6 @@ private:
               "    i = std::distance(v.begin(), std::find_if(v.begin(), v.end(), [=](int j) { return i == j; }));\n"
               "    return i;\n"
               "}\n");
-
         ASSERT_EQUALS("", errout_str());
 
         check("int f(char c) {\n" // #15037
