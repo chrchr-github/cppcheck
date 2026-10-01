@@ -3201,8 +3201,15 @@ bool Tokenizer::simplifyUsing()
                 continue;
             }
 
-            // skip template definitions
             if (Token::Match(tok1, "template < !!>")) {
+                Token *paramsEnd = tok1->next()->findClosingBracket();
+                bool shadowed = !paramsEnd;
+                for (const Token *param = tok1->next(); !shadowed && param != paramsEnd; param = param->next())
+                    shadowed = param->str() == nameToken->str();
+                if (!shadowed) {
+                    tok1 = paramsEnd;
+                    continue;
+                }
                 Token *declEndToken = TemplateSimplifier::findTemplateDeclarationEnd(tok1);
                 if (declEndToken)
                     tok1 = declEndToken;
@@ -9109,7 +9116,8 @@ void Tokenizer::findGarbageCode() const
             if (tok->strAt(1) == "(")
                 syntaxError(tok);
             else if (!(tok->tokType() == Token::Type::eString && Token::simpleMatch(tok->tokAt(-1), "extern")) &&
-                     !(tok->tokType() == Token::Type::eBoolean && cpp && Token::simpleMatch(tok->tokAt(-1), "requires")))
+                     !(tok->tokType() == Token::Type::eBoolean && cpp && Token::simpleMatch(tok->tokAt(-1), "requires")) &&
+                     !Token::simpleMatch(tok->linkAt(1), "} ;"))
                 syntaxError(tok);
         }
         if (Token::Match(tok, "( ) %num%|%bool%|%char%|%str%"))
