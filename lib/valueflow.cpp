@@ -5990,7 +5990,7 @@ static bool needsInitialization(const Variable* var)
             return true;
         if (var->valueType()->type == ValueType::Type::ITERATOR)
             return true;
-        if (var->isStlType() && var->isArray()) {
+        if (var->isArray() && var->getTypeName() == "std::array") {
             if (const Token* ctt = var->valueType()->containerTypeToken) {
                 if (ctt->isStandardType())
                     return true;
