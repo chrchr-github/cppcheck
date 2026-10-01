@@ -342,6 +342,7 @@ private:
         TEST_CASE(bitfields19); // ticket #13733
         TEST_CASE(bitfields20);
         TEST_CASE(bitfields21);
+        TEST_CASE(bitfields22);
 
         TEST_CASE(simplifyNamespaceStd);
 
@@ -5371,6 +5372,14 @@ private:
         ASSERT_EQUALS(1, b->bits());
     }
 
+    void bitfields22() {
+        const char code[] = "constexpr int BITS{4};\n"
+                            "struct Struct { unsigned int m_data : BITS; };\n";
+        const char expected[] = "constexpr int BITS { 4 } ;\n"
+                                "struct Struct { unsigned int m_data ; } ;";
+        ASSERT_EQUALS(expected, tokenizeAndStringify(code));
+    }
+
     void simplifyNamespaceStd() {
         const char *expected;
 
@@ -7910,6 +7919,16 @@ private:
                                                    "    return std::string{ g() + \"abc\" MACRO \"def\" };\n"
                                                    "}\n"), UNKNOWN_MACRO);
 
+        ASSERT_THROW_INTERNAL(tokenizeAndStringify("namespace N {\n"
+                                                   "    struct C {\n"
+                                                   "        void f();\n"
+                                                   "    };\n"
+                                                   "    void C(abc)::f() {\n"
+                                                   "        X x;\n"
+                                                   "        N::Y([&] { x(); })->g();\n"
+                                                   "    }\n"
+                                                   "}\n"), UNKNOWN_MACRO);
+
         ASSERT_THROW_INTERNAL_EQUALS(tokenizeAndStringify("static void handle_toggle(void (*proc) PROTO_XT_CALLBACK_ARGS, int var) {}\n"), // #13198
                                      UNKNOWN_MACRO,
                                      "There is an unknown macro here somewhere. Configuration is required. If PROTO_XT_CALLBACK_ARGS is a macro then please configure it.");
@@ -8119,6 +8138,7 @@ private:
         ignore_errout();
 
         ASSERT_EQUALS(";", tokenizeAndStringify("typedef std::size_t size_t;\n")); // #14809
+        ASSERT_EQUALS("struct S { int i { 0 } ; } ;", tokenizeAndStringify("struct S { int i : 1{0}; };\n")); // #15070
     }
 
 

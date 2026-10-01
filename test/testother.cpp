@@ -11502,6 +11502,23 @@ private:
               "    return i;\n"
               "}\n");
         ASSERT_EQUALS("", errout_str());
+
+        check("int f(char c) {\n" // #15037
+              "	   int i = (int)c;\n"
+              "	   i = 3;\n"
+              "	   return i;\n"
+              "}\n"
+              "int g(char c) {\n"
+              "     int i = static_cast<int>(c);\n"
+              "     i = 3;\n"
+              "     return i;\n"
+              "}\n");
+        ASSERT_EQUALS("[test.cpp:3:7]: style: Redundant initialization for 'i'. The initialized value is overwritten before it is read. [redundantInitialization]\n"
+                      "[test.cpp:2:11]: note: i is initialized\n"
+                      "[test.cpp:3:7]: note: i is overwritten\n"
+                      "[test.cpp:8:8]: style: Redundant initialization for 'i'. The initialized value is overwritten before it is read. [redundantInitialization]\n"
+                      "[test.cpp:7:12]: note: i is initialized\n"
+                      "[test.cpp:8:8]: note: i is overwritten\n", errout_str());
     }
 
     // cppcheck-suppress unusedPrivateFunction
@@ -12746,6 +12763,16 @@ private:
               "}\n", dinit(CheckOptions, $.cpp = false));
         ASSERT_EQUALS("[test.c:8:11]: (style) Checking if unsigned expression 'd.n' is less than zero. [unsignedLessThanZero]\n"
                       "[test.c:12:9]: (style) Checking if unsigned expression 'd.n' is less than zero. [unsignedLessThanZero]\n",
+                      errout_str());
+
+        check("int ifunc(int x);\n"
+              "unsigned int ufunc(unsigned int x);\n"
+              "void f(void)\n"
+              "{\n"
+              "    unsigned int x = 0;\n"
+              "    if (_Generic(x, int: ifunc, unsigned int: ufunc)(x) < 0) {}\n"
+              "}\n", dinit(CheckOptions, $.cpp = false));
+        ASSERT_EQUALS("[test.c:6:57]: (style) Checking if unsigned expression '_Generic(x,int:ifunc,unsigned int:ufunc)(x)' is less than zero. [unsignedLessThanZero]\n",
                       errout_str());
     }
 
@@ -14045,6 +14072,12 @@ private:
               "    g(b);\n"
               "}\n");
         ASSERT_EQUALS("", errout_str());
+
+        check("void g(bool);\n" // #14303
+              "void f() {\n"
+              "    g(g);\n"
+              "}\n");
+        ASSERT_EQUALS("[test.cpp:3:7]: (style) Pointer expression 'g' converted to bool is always true. [knownPointerToBool]\n", errout_str());
     }
 
     void iterateByValue() {

@@ -633,7 +633,7 @@ void CheckOtherImpl::checkRedundantAssignment()
                         if (Token::Match(rhs, ":: %name%") && rhs->hasKnownIntValue())
                             return ChildrenToVisit::none;
                         if (rhs->isCast())
-                            return ChildrenToVisit::op2;
+                            return rhs->astOperand2() ? ChildrenToVisit::op2 : ChildrenToVisit::op1;
                         trivial = false;
                         return ChildrenToVisit::done;
                     });
@@ -4446,7 +4446,7 @@ void CheckOtherImpl::checkKnownPointerToBool()
         for (const Token* tok = functionScope->bodyStart; tok != functionScope->bodyEnd; tok = tok->next()) {
             if (!tok->hasKnownIntValue())
                 continue;
-            if (!astIsPointer(tok))
+            if (!astIsPointer(tok) && !tok->function())
                 continue;
             if (Token::Match(tok->astParent(), "?|!|&&|%oror%|%comp%"))
                 continue;
