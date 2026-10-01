@@ -1577,7 +1577,6 @@ void CheckClassImpl::checkMemsetType(const Scope *start, const Token *tok, const
         }
         // don't warn if variable static or const, pointer or array of pointers
         if (!var.isStatic() && !var.isConst() && !var.isPointer() && (!var.isArray() || var.typeEndToken()->str() != "*")) {
-            const Token *tok1 = var.typeStartToken();
             const Scope *typeScope = var.typeScope();
 
             const std::string typeName = var.getTypeName();
