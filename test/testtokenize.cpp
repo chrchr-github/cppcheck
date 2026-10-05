@@ -3052,12 +3052,17 @@ private:
                             "    return b;\n"
                             "}\n";
         const char expected[] = "struct S {\n"
-                                "bool f ( ) const ;\n"
+                                "bool f1 ( ) const ;\n"
+                                "bool f2 ( ) const ;\n"
                                 "int g ( ) const ;\n"
                                 "int x ; int y ;\n"
                                 "} ;\n"
-                                "bool S :: f ( ) const {\n"
+                                "bool S :: f1 ( ) const {\n"
                                 "const bool b = x ? ( g ( ) < 0 ) : 0 > y ;\n"
+                                "return b ;\n"
+                                "}\n"
+                                "bool S :: f2 ( ) const {\n"
+                                "const bool b = g ( ) < x ? x != y : 0 > y ;\n"
                                 "return b ;\n"
                                 "}";
         ASSERT_EQUALS(expected, tokenizeAndStringify(code));
