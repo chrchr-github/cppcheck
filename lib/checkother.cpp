@@ -1823,20 +1823,19 @@ void CheckOtherImpl::checkConstVariable()
                     if (tok->str() == "&")
                         return ChildrenToVisit::op1;
                     if (tok->str() == "?")
-						return ChildrenToVisit::op2;
+                        return ChildrenToVisit::op2;
                     if (tok->str() == ":")
-						return ChildrenToVisit::op1_and_op2;
+                        return ChildrenToVisit::op1_and_op2;
 
                     ValueFlow::Value ltVal = ValueFlow::getLifetimeObjValue(tok);
-					if ((ltVal.isLifetimeValue() && ltVal.tokvalue->varId() == var->declarationId()) ||
+                    if ((ltVal.isLifetimeValue() && ltVal.tokvalue->varId() == var->declarationId()) ||
                         ValueFlow::hasLifetimeToken(getParentLifetime(tok), var->nameToken(), mSettings)) {
                         result = true;
                         return ChildrenToVisit::done;
                     }
                     return ChildrenToVisit::none;
-                    });
+                });
                 return result;
-                
             }))
                 continue;
         }
