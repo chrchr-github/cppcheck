@@ -4207,6 +4207,9 @@ private:
               "};\n"
               "int& f(S& s, bool b) {\n"
               "    return b ? s.a : s.b;\n"
+              "}\n"
+              "int* g(U& u) {\n"
+              "    return &(u.i);\n"
               "}\n");
         ASSERT_EQUALS("", errout_str());
     }
