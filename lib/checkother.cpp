@@ -1816,6 +1816,12 @@ void CheckOtherImpl::checkConstVariable()
                         result = true;
                         return ChildrenToVisit::done;
                     }
+                    ValueFlow::Value ltVal = ValueFlow::getLifetimeObjValue(tok);
+                    if ((ltVal.isLifetimeValue() && ltVal.tokvalue->varId() == var->declarationId()) ||
+                        ValueFlow::hasLifetimeToken(getParentLifetime(tok), var->nameToken(), mSettings)) {
+                        result = true;
+                        return ChildrenToVisit::done;
+                    }
                     if (tok->isCast())
                         return tok->astOperand2() ? ChildrenToVisit::op2 : ChildrenToVisit::op1;
                     if (tok->str() == ".")
@@ -1826,13 +1832,6 @@ void CheckOtherImpl::checkConstVariable()
                         return ChildrenToVisit::op2;
                     if (tok->str() == ":")
                         return ChildrenToVisit::op1_and_op2;
-
-                    ValueFlow::Value ltVal = ValueFlow::getLifetimeObjValue(tok);
-                    if ((ltVal.isLifetimeValue() && ltVal.tokvalue->varId() == var->declarationId()) ||
-                        ValueFlow::hasLifetimeToken(getParentLifetime(tok), var->nameToken(), mSettings)) {
-                        result = true;
-                        return ChildrenToVisit::done;
-                    }
                     return ChildrenToVisit::none;
                 });
                 return result;
