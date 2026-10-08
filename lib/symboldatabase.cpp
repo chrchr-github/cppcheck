@@ -7550,10 +7550,13 @@ static const Token* parsedecl(const Token* type,
     else if (valuetype->typeScope->type == ScopeType::eEnum) {
         const Token * enum_type = valuetype->typeScope->enumType;
         if (enum_type) {
+            ValueType evt;
             if (enum_type->isSigned())
                 valuetype->sign = ValueType::Sign::SIGNED;
             else if (enum_type->isUnsigned())
                 valuetype->sign = ValueType::Sign::UNSIGNED;
+            else if (!enum_type->isStandardType() && parsedecl(enum_type, &evt, defaultSignedness, settings))
+                *valuetype = evt;
             else
                 valuetype->sign = defaultSignedness; // TODO: this is implementation-dependent might be separate from char
             const ValueType::Type t = ValueType::typeFromString(enum_type->str(), enum_type->isLong());
@@ -7727,12 +7730,8 @@ static const Token* parsedecl(const Token* type,
         } else if (!valuetype->typeScope && (type->str() == "struct" || type->str() == "enum") && valuetype->type != ValueType::Type::SMART_POINTER)
             valuetype->type = type->str() == "struct" ? ValueType::Type::RECORD : ValueType::Type::NONSTD;
         else if (!valuetype->typeScope && type->type() && type->type()->classScope && valuetype->type != ValueType::Type::SMART_POINTER) {
-            if (type->type()->classScope->type == ScopeType::eEnum) {
-                valuetype->sign = ValueType::Sign::SIGNED;
-                valuetype->type = getEnumType(type->type()->classScope, settings.platform);
-            } else {
+            if (type->type()->classScope->type != ScopeType::eEnum)
                 valuetype->type = ValueType::Type::RECORD;
-            }
             valuetype->typeScope = type->type()->classScope;
         } else if (type->isName() && valuetype->sign != ValueType::Sign::UNKNOWN_SIGN && valuetype->pointer == 0U)
             return nullptr;
