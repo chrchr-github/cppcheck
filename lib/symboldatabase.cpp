@@ -7730,8 +7730,14 @@ static const Token* parsedecl(const Token* type,
         } else if (!valuetype->typeScope && (type->str() == "struct" || type->str() == "enum") && valuetype->type != ValueType::Type::SMART_POINTER)
             valuetype->type = type->str() == "struct" ? ValueType::Type::RECORD : ValueType::Type::NONSTD;
         else if (!valuetype->typeScope && type->type() && type->type()->classScope && valuetype->type != ValueType::Type::SMART_POINTER) {
-            if (type->type()->classScope->type != ScopeType::eEnum)
+            if (type->type()->classScope->type == ScopeType::eEnum) {
+                if (valuetype->type == ValueType::Type::UNKNOWN_TYPE) {
+                    valuetype->sign = ValueType::Sign::SIGNED;
+                    valuetype->type = getEnumType(type->type()->classScope, settings.platform);
+                }
+            } else {
                 valuetype->type = ValueType::Type::RECORD;
+            }
             valuetype->typeScope = type->type()->classScope;
         } else if (type->isName() && valuetype->sign != ValueType::Sign::UNKNOWN_SIGN && valuetype->pointer == 0U)
             return nullptr;
