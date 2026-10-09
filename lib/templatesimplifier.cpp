@@ -394,7 +394,7 @@ unsigned int TemplateSimplifier::templateParameters(const Token *tok)
         return 0;
     if (tok->str() != "<")
         return 0;
-    if (Token::Match(tok->previous(), "%var%|) <"))
+    if (Token::Match(tok->previous(), "%var%|) <") && !(tok->linkAt(-1) && Token::simpleMatch(tok->linkAt(-1)->tokAt(-1), "operator")))
         return 0;
     tok = tok->next();
     if (!tok || tok->str() == ">")
