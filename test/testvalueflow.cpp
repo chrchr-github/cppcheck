@@ -1263,6 +1263,15 @@ private:
         ASSERT_EQUALS(1U, values.size());
         ASSERT_EQUALS(~0U, values.back().intvalue);
 
+        // #15015
+        code  = "void f(unsigned u) {\n"
+                "    if (~u) {}\n"
+                "}";
+        values = tokenValues(code, "~");
+        ASSERT_EQUALS(1U, values.size());
+        ASSERT_EQUALS(-1, values.back().intvalue);
+        ASSERT(values.back().isImpossible());
+
         // !
         code  = "void f(int x) {\n"
                 "    a = !x;\n"
@@ -3277,6 +3286,16 @@ private:
                "    }\n"
                "};\n";
         ASSERT_EQUALS(false, testValueOfXKnown(code, 7U, 0));
+
+        code = "int g() { return 0; }\n"
+               "int f() {\n"
+               "  int (*x)() = g;\n"
+               "  return x();\n"
+               "}\n";
+        auto values = tokenValues(code, "x (");
+        ASSERT_EQUALS(1U, values.size());
+        ASSERT(values.front().isImpossible());
+        ASSERT_EQUALS(0, values.front().intvalue);
     }
 
     void valueFlowAfterSwap()
