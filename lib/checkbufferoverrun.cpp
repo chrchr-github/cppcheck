@@ -604,6 +604,11 @@ ValueFlow::Value CheckBufferOverrunImpl::getBufferSize(const Token *bufTok, cons
                     return bufSizeVal;
                 }
             }
+        } else if (bufTok->tokType() == Token::Type::eString) {
+            ValueFlow::Value strSizeVal;
+            strSizeVal.valueType = ValueFlow::Value::ValueType::BUFFER_SIZE;
+            strSizeVal.intvalue = Token::getStrArraySize(bufTok);
+            return strSizeVal;
         }
     }
 
