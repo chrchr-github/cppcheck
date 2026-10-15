@@ -4618,9 +4618,8 @@ private:
         check("void f() {\n"
               "  mymemset(\"abc\", 0, 20);\n"
               "}\n", settings);
-        TODO_ASSERT_EQUALS("[test.cpp:2]: (error) Buffer is accessed out of bounds.\n",
-                           "",
-                           errout_str());
+        ASSERT_EQUALS("[test.cpp:2:12]: (warning) Buffer is accessed out of bounds: \"abc\" [bufferAccessOutOfBounds]\n",
+                      errout_str());
 
         check("void f() {\n"
               "  mymemset(temp, \"abc\", 4);\n"
