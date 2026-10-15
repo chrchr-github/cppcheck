@@ -3653,6 +3653,11 @@ private:
               "    return memcmp(s, \"\\0\\0\\0\", 3);\n"
               "}\n");
         ASSERT_EQUALS("", errout_str());
+
+        check("int f(const char16_t* buf) {\n"
+              "    return memcmp(buf, u\"abc\", 4 * sizeof(char16_t));\n"
+              "}\n");
+        ASSERT_EQUALS("", errout_str());
     }
 
     void buffer_overrun_errorpath() {
