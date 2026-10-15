@@ -3624,29 +3624,29 @@ private:
 
     void buffer_overrun_39() { // #11765
         check("void f() {\n"
-              "    char buf[128];\n"
-              "    memcpy(buf, \"Error\", 6);\n"
+              "    char buf[10];\n"
+              "    memcpy(buf, \"abc\", 4);\n"
               "}\n");
         ASSERT_EQUALS("", errout_str());
 
         check("void f() {\n"
               "    char buf[128];\n"
-              "    memcpy(buf, \"Error\", 16);\n"
+              "    memcpy(buf, \"abc\", 5);\n"
               "}\n");
-        ASSERT_EQUALS("[test.cpp:3:17]: (warning) Buffer is accessed out of bounds: \"Error\" [bufferAccessOutOfBounds]\n",
+        ASSERT_EQUALS("[test.cpp:3:17]: (warning) Buffer is accessed out of bounds: \"abc\" [bufferAccessOutOfBounds]\n",
                       errout_str());
 
         check("void f() {\n"
               "    char buf[128];\n"
-              "    memcpy(buf, L\"Error\", 10);\n" // at least 12 bytes on any platform
+              "    memcpy(buf, L\"abc\", 4 * sizeof(wchar_t));\n"
               "}\n");
         ASSERT_EQUALS("", errout_str());
 
         check("void f() {\n"
               "    char buf[128];\n"
-              "    memcpy(buf, L\"Error\", 26);\n" // at most 24 bytes
+              "    memcpy(buf, L\"abc\", 4 * sizeof(wchar_t) + 1);\n"
               "}\n");
-        ASSERT_EQUALS("[test.cpp:3:17]: (warning) Buffer is accessed out of bounds: L\"Error\" [bufferAccessOutOfBounds]\n",
+        ASSERT_EQUALS("[test.cpp:3:17]: (warning) Buffer is accessed out of bounds: L\"abc\" [bufferAccessOutOfBounds]\n",
                       errout_str());
 
         check("int f(char* s) {\n"
