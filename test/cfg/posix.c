@@ -717,8 +717,9 @@ size_t bufferAccessOutOfBounds_strnlen(const char *s, size_t maxlen)
 {
     const char buf[2]={'4','2'};
     size_t len = strnlen(buf,2);
-    // cppcheck-suppress bufferAccessOutOfBounds
+    // TODO cppcheck-suppress bufferAccessOutOfBounds
     len+=strnlen(buf,3);
+    len+=strnlen("ab",3);
     return len;
 }
 
