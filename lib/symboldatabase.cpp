@@ -8690,7 +8690,6 @@ template<class F>
 static Result accumulateStructMembers(const Scope* scope, F f, ValueType::Accuracy accuracy, const Settings& settings)
 {
     size_t total = 0;
-    std::set<const Scope*> anonScopes;
     for (const Variable& var : scope->varlist) {
         if (var.isStatic())
             continue;
