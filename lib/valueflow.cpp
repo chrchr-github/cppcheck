@@ -1096,7 +1096,7 @@ static void valueFlowImpossibleValues(TokenList& tokenList, const Settings& sett
             value.setImpossible();
             setTokenValue(tok, std::move(value), settings);
         }
-        if (Token::simpleMatch(tok, "?") && Token::Match(tok->astOperand1(), "<|<=|>|>=")) {
+        else if (Token::simpleMatch(tok, "?") && Token::Match(tok->astOperand1(), "<|<=|>|>=")) {
             const Token* condTok = tok->astOperand1();
             const Token* branchesTok = tok->astOperand2();
 
@@ -1139,11 +1139,20 @@ static void valueFlowImpossibleValues(TokenList& tokenList, const Settings& sett
                 setTokenValue(tok, std::move(value), settings);
             }
 
-        } else if (Token::simpleMatch(tok, "%") && tok->astOperand2() && tok->astOperand2()->hasKnownIntValue()) {
+        } else if (tok->isBinaryOp() && tok->str() == "%" && tok->astOperand2()->hasKnownIntValue()) {
             ValueFlow::Value value{tok->astOperand2()->getKnownIntValue()};
             value.bound = ValueFlow::Value::Bound::Lower;
             value.setImpossible();
             setTokenValue(tok, std::move(value), settings);
+        } else if (tok->isBinaryOp() && tok->str() == "|") {
+            const ValueFlow::Value* opVal = tok->astOperand1()->getKnownValue(ValueFlow::Value::ValueType::INT);
+            if (!opVal)
+                opVal = tok->astOperand2()->getKnownValue(ValueFlow::Value::ValueType::INT);
+            if (opVal && opVal->intvalue != 0) {
+                ValueFlow::Value value{0};
+                value.setImpossible();
+                setTokenValue(tok, std::move(value), settings);
+            }
         } else if (Token::Match(tok, "abs|labs|llabs|fabs|fabsf|fabsl (")) {
             ValueFlow::Value value{-1};
             value.bound = ValueFlow::Value::Bound::Upper;

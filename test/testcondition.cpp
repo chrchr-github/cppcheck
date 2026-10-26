@@ -4999,6 +4999,13 @@ private:
                       "[test.cpp:9:9]: (style) Condition '0b101010' is always true [knownConditionTrueFalse]\n"
                       "[test.cpp:10:9]: (style) Condition '!42' is always false [knownConditionTrueFalse]\n",
                       errout_str());
+
+        check("void f(int i) {\n" // #15144
+              "    int c = i | 1;\n"
+              "    if (c) {}\n"
+              "}\n");
+        ASSERT_EQUALS("[test.cpp:3:9]: (style) Condition 'c' is always true [knownConditionTrueFalse]\n",
+                      errout_str());
     }
 
     void alwaysTrueSymbolic()

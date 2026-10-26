@@ -57,6 +57,7 @@ private:
         TEST_CASE(valueFlowMove);
 
         TEST_CASE(valueFlowBitAnd);
+        TEST_CASE(valueFlowBitOr);
         TEST_CASE(valueFlowRightShift);
 
         TEST_CASE(valueFlowCalculations);
@@ -4414,6 +4415,16 @@ private:
                "}\n";
         ASSERT_EQUALS(true, testValueOfX(code,3U,0));
         ASSERT_EQUALS(false, testValueOfX(code,3U,16));
+    }
+
+    void valueFlowBitOr() {
+        const char *code;
+
+        code = "int f(int a) {\n"
+               "  int x = a | 0x80;\n"
+               "  return x;\n"
+               "}\n";        
+        ASSERT_EQUALS(true, testValueOfXImpossible(code, 3U, 0));
     }
 
     void valueFlowForwardInconclusiveImpossible() {
