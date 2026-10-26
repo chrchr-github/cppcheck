@@ -4423,7 +4423,7 @@ private:
         code = "int f(int a) {\n"
                "  int x = a | 0x80;\n"
                "  return x;\n"
-               "}\n";        
+               "}\n";
         ASSERT_EQUALS(true, testValueOfXImpossible(code, 3U, 0));
     }
 
