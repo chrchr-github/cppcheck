@@ -273,7 +273,7 @@ namespace ValueFlow
                 return !Token::simpleMatch(p, ",");
             });
             // Ensure that the comma isn't a function call
-           if (!isFunctionCall(callParent, settings)) {
+            if (!isFunctionCall(callParent, settings)) {
                 setTokenValue(parent, std::move(value), settings);
                 return;
             }
