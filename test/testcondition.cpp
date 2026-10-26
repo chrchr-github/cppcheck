@@ -5003,8 +5003,15 @@ private:
         check("void f(int i) {\n" // #15144
               "    int c = i | 1;\n"
               "    if (c) {}\n"
+              "}\n"
+              "void g(int i, int m) {\n"
+              "    if (m == 0)\n"
+              "        return;\n"
+              "    int c = i | m;\n"
+              "    if (c) {}\n"
               "}\n");
-        ASSERT_EQUALS("[test.cpp:3:9]: (style) Condition 'c' is always true [knownConditionTrueFalse]\n",
+        ASSERT_EQUALS("[test.cpp:3:9]: (style) Condition 'c' is always true [knownConditionTrueFalse]\n"
+                      "[test.cpp:9:9]: (style) Condition 'c' is always true [knownConditionTrueFalse]\n",
                       errout_str());
     }
 

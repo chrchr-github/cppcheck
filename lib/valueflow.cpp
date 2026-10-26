@@ -1145,10 +1145,20 @@ static void valueFlowImpossibleValues(TokenList& tokenList, const Settings& sett
             value.setImpossible();
             setTokenValue(tok, std::move(value), settings);
         } else if (tok->isBinaryOp() && tok->str() == "|") {
-            const ValueFlow::Value* opVal = tok->astOperand1()->getKnownValue(ValueFlow::Value::ValueType::INT);
-            if (!opVal)
-                opVal = tok->astOperand2()->getKnownValue(ValueFlow::Value::ValueType::INT);
-            if (opVal && opVal->intvalue != 0) {
+            bool nonNull = false;
+            for (const Token *op : {tok->astOperand1(), tok->astOperand2()}) {
+                for (const ValueFlow::Value& v : op->values()) {
+                    if (v.valueType != ValueFlow::Value::ValueType::INT)
+                        continue;
+                    if ((v.isKnown() && v.intvalue != 0) || (v.isImpossible() && v.intvalue == 0)) {
+                        nonNull = true;
+                        break;
+                    }
+                }
+                if (nonNull)
+                    break;
+            }
+            if (nonNull) {
                 ValueFlow::Value value{0};
                 value.setImpossible();
                 setTokenValue(tok, std::move(value), settings);
