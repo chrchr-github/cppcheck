@@ -3719,13 +3719,14 @@ private:
 
 #define valueFlowUninit(...) valueFlowUninit_(__FILE__, __LINE__, __VA_ARGS__)
     template<size_t size>
-    void valueFlowUninit_(const char* file, int line, const char (&code)[size], bool cpp = true)
+    void valueFlowUninit_(const char* file, int line, const char (&code)[size], bool cpp = true, const Settings* pSettings)
     {
-        SimpleTokenizer tokenizer(settings, *this, cpp);
+        const Settings& s = pSettings ? *pSettings : settings;
+        SimpleTokenizer tokenizer(s, *this, cpp);
         ASSERT_LOC(tokenizer.tokenize(code), file, line);
 
         // Check for redundant code..
-        CheckUninitVarImpl checkuninitvar(&tokenizer, settings, *this);
+        CheckUninitVarImpl checkuninitvar(&tokenizer, s, *this);
         (checkuninitvar.valueFlowUninit)();
     }
 
@@ -7943,6 +7944,24 @@ private:
                         "    return x;\n"
                         "}\n");
         ASSERT_EQUALS("", errout_str());
+    }
+
+    void valueFlowUninitErrorPath()
+    {
+        setMultiline();
+        Settings s = settings;
+        s.templateLocation = "{file}:{line}:note:{info}\n";
+        valueFlowUninit("void f(bool b) {\n"
+                        "    int i;\n"
+                        "    if (b)\n"
+                        "        return i;\n"
+                        "    i = 1;\n"
+                        "    return i;\n"
+                        "}\n", &s);
+        ASSERT_EQUALS("[test.cpp:4:16]: warning: Uninitialized variable: i [uninitvar]\n"
+                      "[test.cpp:3:9]: note: Assuming condition is true\n"
+                      "[test.cpp:4:16]: note: Uninitialized variable: i\n",
+                      errout_str());
     }
 
     void uninitvar_memberfunction() {
