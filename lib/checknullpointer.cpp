@@ -470,7 +470,7 @@ void CheckNullPointerImpl::nullPointerError(const Token *tok, const std::string 
             errmsg = "$symbol:" + varname + '\n' + errmsg + ": $symbol";
 
         reportError(std::move(errorPath),
-                    value->isKnown() ? Severity::error : Severity::warning,
+                    value->isKnown() && !value->conditional ? Severity::error : Severity::warning,
                     id.c_str(),
                     errmsg,
                     CWE_NULL_POINTER_DEREFERENCE, inconclusive || value->isInconclusive() ? Certainty::inconclusive : Certainty::normal);
