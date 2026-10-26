@@ -3719,14 +3719,13 @@ private:
 
 #define valueFlowUninit(...) valueFlowUninit_(__FILE__, __LINE__, __VA_ARGS__)
     template<size_t size>
-    void valueFlowUninit_(const char* file, int line, const char (&code)[size], bool cpp = true, const Settings* pSettings = nullptr)
+    void valueFlowUninit_(const char* file, int line, const char (&code)[size], bool cpp = true)
     {
-        const Settings& s = pSettings ? *pSettings : settings;
-        SimpleTokenizer tokenizer(s, *this, cpp);
+        SimpleTokenizer tokenizer(settings, *this, cpp);
         ASSERT_LOC(tokenizer.tokenize(code), file, line);
 
         // Check for redundant code..
-        CheckUninitVarImpl checkuninitvar(&tokenizer, s, *this);
+        CheckUninitVarImpl checkuninitvar(&tokenizer, settings, *this);
         (checkuninitvar.valueFlowUninit)();
     }
 
@@ -7949,15 +7948,14 @@ private:
     void valueFlowUninitErrorPath()
     {
         setMultiline();
-        Settings s = settings;
-        s.templateLocation = "{file}:{line}:note:{info}\n";
+
         valueFlowUninit("void f(bool b) {\n"
                         "    int i;\n"
                         "    if (b)\n"
                         "        return i;\n"
                         "    i = 1;\n"
                         "    return i;\n"
-                        "}\n", &s);
+                        "}\n");
         ASSERT_EQUALS("[test.cpp:4:16]: warning: Uninitialized variable: i [uninitvar]\n"
                       "[test.cpp:3:9]: note: Assuming condition is true\n"
                       "[test.cpp:4:16]: note: Uninitialized variable: i\n",
