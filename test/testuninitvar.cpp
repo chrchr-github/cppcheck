@@ -3719,7 +3719,7 @@ private:
 
 #define valueFlowUninit(...) valueFlowUninit_(__FILE__, __LINE__, __VA_ARGS__)
     template<size_t size>
-    void valueFlowUninit_(const char* file, int line, const char (&code)[size], bool cpp = true, const Settings* pSettings)
+    void valueFlowUninit_(const char* file, int line, const char (&code)[size], bool cpp = true, const Settings* pSettings = nullptr)
     {
         const Settings& s = pSettings ? *pSettings : settings;
         SimpleTokenizer tokenizer(s, *this, cpp);
