@@ -95,6 +95,7 @@ private:
         TEST_CASE(valueFlowUninitBreak);
         TEST_CASE(valueFlowUninitStructMembers);
         TEST_CASE(valueFlowUninitForLoop);
+        TEST_CASE(valueFlowUninitErrorPath);
         TEST_CASE(uninitvar_ipa);
         TEST_CASE(uninitvar_memberfunction);
         TEST_CASE(uninitvar_nonmember); // crash in ycmd test
