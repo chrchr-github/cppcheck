@@ -4589,13 +4589,15 @@ private:
 
     void nullpointerErrorPath() {
         setMultiline();
+        Settings s = settings;
+        s.templateLocation = "{file}:{line}:note:{info}\n";
 
         check("int f(bool b) {\n"
               "    int* p = nullptr;\n"
               "    if (b)\n"
               "        return 0;\n"
               "    return *p;\n"
-              "}\n");
+              "}\n", s);
         ASSERT_EQUALS(
             "[test.cpp:5:13]: warning: Possible null pointer dereference: p [nullPointer]\n"
             "[test.cpp:2:14]: note: Assignment 'p=nullptr', assigned value is 0\n"
