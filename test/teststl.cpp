@@ -7424,6 +7424,17 @@ private:
               dinit(CheckOptions, $.inconclusive = true));
         ASSERT_EQUALS("", errout_str());
 
+        check("void f(std::map<int, bool>& m) {\n" // #15116
+              "    if (m.count(1) != 0)\n"
+              "        m[1] = true;\n"
+              "}\n"
+              "void g(std::map<int, bool>& m) {\n"
+              "    if (m.count(1) == 1)\n"
+              "        m[1] = true;\n"
+              "}\n",
+              dinit(CheckOptions, $.inconclusive = true));
+        ASSERT_EQUALS("", errout_str()); // TODO: warn about duplicate search
+
         // #9218 - not small type => do not warn if cpp standard is < c++17
         {
             Settings s = settings;
