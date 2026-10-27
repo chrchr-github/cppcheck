@@ -4595,7 +4595,7 @@ private:
               "    if (b)\n"
               "        return 0;\n"
               "    return *p;\n"
-              "}\n", s);
+              "}\n");
         ASSERT_EQUALS(
             "[test.cpp:5:13]: warning: Possible null pointer dereference: p [nullPointer]\n"
             "[test.cpp:2:14]: note: Assignment 'p=nullptr', assigned value is 0\n"
