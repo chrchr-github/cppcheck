@@ -2489,7 +2489,7 @@ private:
               "        *p = 0;\n"
               "    }\n"
               "}\n");
-        ASSERT_EQUALS("[test.cpp:4:10]: (warning) Null pointer dereference: p [nullPointer]\n", errout_str());
+        ASSERT_EQUALS("[test.cpp:4:10]: (warning) Possible null pointer dereference: p [nullPointer]\n", errout_str());
     }
 
     void nullpointer78() // #7802
@@ -4101,10 +4101,10 @@ private:
               "    foo(p == s2);\n"
               "    foo(p == s3);\n"
               "}\n", dinit(CheckOptions, $.inconclusive = true));
-        ASSERT_EQUALS("[test.cpp:4:15]: (warning) Null pointer dereference: p [nullPointer]\n"
-                      "[test.cpp:5:15]: (warning) Null pointer dereference: p [nullPointer]\n"
-                      "[test.cpp:7:9]: (warning) Null pointer dereference: p [nullPointer]\n"
-                      "[test.cpp:8:9]: (warning) Null pointer dereference: p [nullPointer]\n", errout_str());
+        ASSERT_EQUALS("[test.cpp:4:15]: (warning) Possible null pointer dereference: p [nullPointer]\n"
+                      "[test.cpp:5:15]: (warning) Possible null pointer dereference: p [nullPointer]\n"
+                      "[test.cpp:7:9]: (warning) Possible null pointer dereference: p [nullPointer]\n"
+                      "[test.cpp:8:9]: (warning) Possible null pointer dereference: p [nullPointer]\n", errout_str());
 
         check("void f(std::string s1, const std::string& s2, const std::string* s3) {\n"
               "    void* p = 0;\n"
@@ -4589,8 +4589,7 @@ private:
 
     void nullpointerErrorPath() {
         setMultiline();
-        Settings s = settings;
-        s.templateLocation = "{file}:{line}:note:{info}\n";
+
         check("int f(bool b) {\n"
               "    int* p = nullptr;\n"
               "    if (b)\n"
@@ -4598,7 +4597,7 @@ private:
               "    return *p;\n"
               "}\n", s);
         ASSERT_EQUALS(
-            "[test.cpp:5:13]: warning: Null pointer dereference: p [nullPointer]\n"
+            "[test.cpp:5:13]: warning: Possible null pointer dereference: p [nullPointer]\n"
             "[test.cpp:2:14]: note: Assignment 'p=nullptr', assigned value is 0\n"
             "[test.cpp:3:9]: note: Assuming condition is false\n"
             "[test.cpp:5:13]: note: Null pointer dereference\n",
