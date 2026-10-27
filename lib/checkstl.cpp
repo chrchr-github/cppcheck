@@ -1636,6 +1636,8 @@ static std::pair<const Token *, const Token *> isMapFind(const Token *tok)
         return {};
     if (!tok->astOperand2())
         return {};
+    if (!Token::simpleMatch(tok->astParent(), "=="))
+        return {};
     return {contTok, tok->astOperand2()};
 }
 
