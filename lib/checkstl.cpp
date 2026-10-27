@@ -1638,6 +1638,8 @@ static std::pair<const Token *, const Token *> isMapFind(const Token *tok)
         return {};
     if (!Token::simpleMatch(tok->astParent(), "=="))
         return {};
+    if (tok->astOperand1()->strAt(1) == "count" && (!tok->astParent()->astOperand2()->hasKnownIntValue() || tok->astParent()->getKnownIntValue() != 0)
+        return {};
     return {contTok, tok->astOperand2()};
 }
 
