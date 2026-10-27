@@ -5738,11 +5738,11 @@ static void valueFlowSubFunction(const TokenList& tokenlist,
                 // passing value(s) to function
                 std::list<ValueFlow::Value> argvalues(getFunctionArgumentValues(argtok));
 
-                // Remove non-local lifetimes
+                // Remove non-local lifetimes and moved values
                 argvalues.remove_if([](const ValueFlow::Value& v) {
                     if (v.isLifetimeValue())
                         return !v.isLocalLifetimeValue() && !v.isSubFunctionLifetimeValue();
-                    return false;
+                    return v.isMovedValue();
                 });
                 // Remove uninit values if argument is passed by value
                 if (argtok->variable() && !argtok->variable()->isPointer() && argvalues.size() == 1 &&
