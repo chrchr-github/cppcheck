@@ -70,10 +70,10 @@ namespace {
         VarIdScopeInfo(bool isExecutable, bool isStructInit, bool isEnum, nonneg int startVarid)
             : isExecutable(isExecutable), isStructInit(isStructInit), isEnum(isEnum), startVarid(startVarid) {}
 
-        const bool isExecutable{};
-        const bool isStructInit{};
-        const bool isEnum{};
-        const nonneg int startVarid{};
+        bool isExecutable{};
+        bool isStructInit{};
+        bool isEnum{};
+        nonneg int startVarid{};
     };
 }
 
@@ -3632,7 +3632,7 @@ bool Tokenizer::simplifyTokens1(const std::string &configuration, int fileIndex)
 
 //---------------------------------------------------------------------------
 
-void Tokenizer::findComplicatedSyntaxErrorsInTemplates()
+void Tokenizer::findComplicatedSyntaxErrorsInTemplates() const
 {
     validate();
     mTemplateSimplifier->checkComplicatedSyntaxErrorsInTemplates();
@@ -5083,7 +5083,7 @@ void Tokenizer::setVarIdPass1()
                 if (decl) {
                     if (isC() && Token::Match(prev2->previous(), "&|&&"))
                         syntaxErrorC(prev2, prev2->strAt(-2) + prev2->strAt(-1) + " " + prev2->str());
-                    variableMap.addVariable(prev2->str(), scopeStack.size() <= 1);
+                    variableMap.addVariable(prev2->str(), scopeStack.size() <= 1 && !functionDeclEndToken);
 
                     if (Token::simpleMatch(tok->previous(), "for (") && Token::Match(prev2, "%name% [=[({,]")) {
                         for (const Token *tok3 = prev2->next(); tok3 && tok3->str() != ";"; tok3 = tok3->next()) {

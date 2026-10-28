@@ -89,6 +89,7 @@
 #include "infer.h"
 #include "library.h"
 #include "mathlib.h"
+#include "refthunk.h"
 #include "path.h"
 #include "platform.h"
 #include "programmemory.h"
@@ -687,57 +688,6 @@ static void valueFlowArray(TokenList& tokenlist, const Settings& settings)
             constantArrays[vartok->varId()] = strtok;
             tok = strtok->next();
             continue;
-        }
-    }
-}
-
-static bool isNonZero(const Token* tok)
-{
-    return tok && (!tok->hasKnownIntValue() || tok->getKnownIntValue() != 0);
-}
-
-static const Token* getOtherOperand(const Token* tok)
-{
-    if (!tok)
-        return nullptr;
-    if (!tok->astParent())
-        return nullptr;
-    if (tok->astParent()->astOperand1() != tok)
-        return tok->astParent()->astOperand1();
-    if (tok->astParent()->astOperand2() != tok)
-        return tok->astParent()->astOperand2();
-    return nullptr;
-}
-
-static void valueFlowArrayBool(TokenList& tokenlist, const Settings& settings)
-{
-    for (Token* tok = tokenlist.front(); tok; tok = tok->next()) {
-        if (tok->hasKnownIntValue())
-            continue;
-        const Variable* var = nullptr;
-        bool known = false;
-        const auto val =
-            std::find_if(tok->values().cbegin(), tok->values().cend(), std::mem_fn(&ValueFlow::Value::isTokValue));
-        if (val == tok->values().end()) {
-            var = tok->variable();
-            known = true;
-        } else {
-            var = val->tokvalue->variable();
-            known = val->isKnown();
-        }
-        if (!var)
-            continue;
-        if (!var->isArray() || var->isArgument() || var->getTypeName() == "std::array")
-            continue;
-        if (isNonZero(getOtherOperand(tok)) && Token::Match(tok->astParent(), "%comp%"))
-            continue;
-        // TODO: Check for function argument
-        if ((astIsBool(tok->astParent()) && !Token::Match(tok->astParent(), "(|%name%")) ||
-            (tok->astParent() && Token::Match(tok->astParent()->previous(), "if|while|for ("))) {
-            ValueFlow::Value value{1};
-            if (known)
-                value.setKnown();
-            setTokenValue(tok, std::move(value), settings);
         }
     }
 }
@@ -4150,7 +4100,7 @@ static std::list<ValueFlow::Value> truncateValues(std::list<ValueFlow::Value> va
         }
 
         if (value.isIntValue() && sz > 0 && sz < sizeof(MathLib::biguint))
-            value.intvalue = ValueFlow::truncateIntValue(value.intvalue, sz, dst->sign);
+            value.intvalue = ValueFlow::truncateIntValue(value.intvalue, sz, dst, settings.platform);
     }
     return values;
 }
@@ -7321,10 +7271,10 @@ struct ValueFlowState {
         : tokenlist(tokenlist), symboldatabase(symboldatabase), errorLogger(errorLogger), settings(settings)
     {}
 
-    TokenList& tokenlist;
-    SymbolDatabase& symboldatabase;
-    ErrorLogger& errorLogger;
-    const Settings& settings;
+    RefThunk<TokenList> tokenlist;
+    RefThunk<SymbolDatabase> symboldatabase;
+    RefThunk<ErrorLogger> errorLogger;
+    RefThunk<const Settings> settings;
     std::set<const Scope*> skippedFunctions;
 };
 
@@ -7360,31 +7310,31 @@ struct ValueFlowPassRunner {
     bool run(std::initializer_list<ValuePtr<ValueFlowPass>> passes) const
     {
         std::size_t values = 0;
-        std::size_t n = state.settings.vfOptions.maxIterations;
-        const bool doProgress = state.settings.reportProgress >= 0;
+        std::size_t n = state.settings().vfOptions.maxIterations;
+        const bool doProgress = state.settings().reportProgress >= 0;
         while (n > 0 && values != getTotalValues()) {
             values = getTotalValues();
-            const std::size_t passnum = state.settings.vfOptions.maxIterations - n + 1;
+            const std::size_t passnum = state.settings().vfOptions.maxIterations - n + 1;
             const std::string passnum_s = std::to_string(passnum);
             if (std::any_of(passes.begin(), passes.end(), [&](const ValuePtr<ValueFlowPass>& pass) {
                 // the string concatination is a hot spot in TestIO::testScanfArgument and TestIO::testPrintfArgumentVariables
                 std::string stage = doProgress ? std::string("ValueFlow::") + pass->name() + (' ' + passnum_s) : "";
-                ProgressReporter progressReporter(state.errorLogger, state.settings.reportProgress, state.tokenlist.getSourceFilePath(), std::move(stage));
+                ProgressReporter progressReporter(state.errorLogger, state.settings().reportProgress, state.tokenlist().getSourceFilePath(), std::move(stage));
                 return run(pass, passnum);
             }))
                 return true;
             --n;
         }
-        if (state.settings.debugwarnings) {
+        if (state.settings().debugwarnings) {
             if (n == 0 && values != getTotalValues()) {
-                ErrorMessage::FileLocation loc(state.tokenlist.getFiles()[0], 0, 0);
+                ErrorMessage::FileLocation loc(state.tokenlist().getFiles()[0], 0, 0);
                 ErrorMessage errmsg({std::move(loc)},
                                     "",
                                     Severity::debug,
                                     "ValueFlow maximum iterations exceeded",
                                     "valueFlowMaxIterations",
                                     Certainty::normal);
-                state.errorLogger.reportErr(errmsg);
+                state.errorLogger().reportErr(errmsg);
             }
         }
         return false;
@@ -7397,7 +7347,7 @@ struct ValueFlowPassRunner {
             // TODO: add bailout message
             return true;
         }
-        if (!state.tokenlist.isCPP() && pass->cpp())
+        if (!state.tokenlist().isCPP() && pass->cpp())
             return false;
         if (timerResults) {
             std::string name = pass->name();
@@ -7416,15 +7366,15 @@ struct ValueFlowPassRunner {
     std::size_t getTotalValues() const
     {
         std::size_t n = 1;
-        for (Token* tok = state.tokenlist.front(); tok; tok = tok->next())
+        for (Token* tok = state.tokenlist().front(); tok; tok = tok->next())
             n += tok->values().size();
         return n;
     }
 
     void setSkippedFunctions()
     {
-        if (state.settings.vfOptions.maxIfCount > 0) {
-            for (const Scope* functionScope : state.symboldatabase.functionScopes) {
+        if (state.settings().vfOptions.maxIfCount > 0) {
+            for (const Scope* functionScope : state.symboldatabase().functionScopes) {
                 int countIfScopes = 0;
                 std::vector<const Scope*> scopes{functionScope};
                 while (!scopes.empty()) {
@@ -7436,22 +7386,22 @@ struct ValueFlowPassRunner {
                             ++countIfScopes;
                     }
                 }
-                if (countIfScopes > state.settings.vfOptions.maxIfCount) {
+                if (countIfScopes > state.settings().vfOptions.maxIfCount) {
                     state.skippedFunctions.emplace(functionScope);
 
-                    if (state.settings.severity.isEnabled(Severity::information)) {
+                    if (state.settings().severity.isEnabled(Severity::information)) {
                         const std::string& functionName = functionScope->className;
                         std::list<ErrorMessage::FileLocation> callstack(
                             1,
-                            ErrorMessage::FileLocation(functionScope->bodyStart, &state.tokenlist));
+                            ErrorMessage::FileLocation(functionScope->bodyStart, &state.tokenlist()));
                         const ErrorMessage errmsg(std::move(callstack),
-                                                  state.tokenlist.getSourceFilePath(),
+                                                  state.tokenlist().getSourceFilePath(),
                                                   Severity::information,
                                                   "Limiting ValueFlow analysis in function '" + functionName + "' since it is too complex. "
                                                   "Please specify --check-level=exhaustive to perform full analysis.",
                                                   "checkLevelNormal", // TODO: use more specific ID
                                                   Certainty::normal);
-                        state.errorLogger.reportErr(errmsg);
+                        state.errorLogger().reportErr(errmsg);
                     }
                 }
             }
@@ -7460,8 +7410,8 @@ struct ValueFlowPassRunner {
 
     void setStopTime()
     {
-        if (state.settings.vfOptions.maxTime >= 0)
-            stop = Clock::now() + std::chrono::seconds{state.settings.vfOptions.maxTime};
+        if (state.settings().vfOptions.maxTime >= 0)
+            stop = Clock::now() + std::chrono::seconds{state.settings().vfOptions.maxTime};
     }
 
     ValueFlowState state;
@@ -7559,7 +7509,6 @@ void ValueFlow::setValues(TokenList& tokenlist,
         VFA(valueFlowSymbolicOperators(symboldatabase, settings)),
         VFA(valueFlowCondition(SymbolicConditionHandler{}, tokenlist, symboldatabase, errorLogger, settings, skippedFunctions)),
         VFA(valueFlowSymbolicInfer(symboldatabase, settings)),
-        VFA(valueFlowArrayBool(tokenlist, settings)),
         VFA(valueFlowArrayElement(tokenlist, settings)),
         VFA(valueFlowRightShift(tokenlist, settings)),
         VFA_CPP(
