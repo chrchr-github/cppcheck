@@ -1096,7 +1096,7 @@ static void valueFlowImpossibleValues(TokenList& tokenList, const Settings& sett
             value.setImpossible();
             setTokenValue(tok, std::move(value), settings);
         }
-        else if (Token::simpleMatch(tok, "?") && Token::Match(tok->astOperand1(), "<|<=|>|>=")) {
+        if (Token::simpleMatch(tok, "?") && Token::Match(tok->astOperand1(), "<|<=|>|>=")) {
             const Token* condTok = tok->astOperand1();
             const Token* branchesTok = tok->astOperand2();
 
