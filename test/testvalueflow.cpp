@@ -4326,6 +4326,13 @@ private:
                "}\n";
         auto values = tokenValues(code, "s :", ValueFlow::Value::ValueType::FLOAT);
         ASSERT_EQUALS(0, values.size());
+
+        code = "bool f(unsigned a, unsigned b) {\n"
+               "    unsigned m = a < b ? a : b;\n"
+               "    bool x = (m > a);\n"
+               "    return x;\n"
+               "}\n";
+        ASSERT_EQUALS(true, testValueOfX(code, 4U, 0));
     }
 
     void valueFlowForwardLambda() {
