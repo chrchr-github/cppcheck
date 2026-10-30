@@ -27,7 +27,7 @@
 #include "config.h"
 #include "errortypes.h"
 #include "mathlib.h"
-#include "valueflow.h"
+#include "vfvalue.h"
 
 #include <cstdint>
 #include <string>
