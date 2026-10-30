@@ -27,6 +27,7 @@
 #include "config.h"
 #include "errortypes.h"
 #include "mathlib.h"
+#include "valueflow.h"
 
 #include <cstdint>
 #include <string>
@@ -37,10 +38,6 @@ class Token;
 class Variable;
 class ErrorLogger;
 class Tokenizer;
-namespace ValueFlow
-{
-    class Value;
-}
 
 /// @addtogroup Checks
 /// @{
