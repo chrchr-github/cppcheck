@@ -656,7 +656,7 @@ void CheckStlImpl::mismatchingContainersError(const Token* tok1, const Token* to
 {
     const std::string expr1(tok1 ? tok1->expressionString() : std::string("v1"));
     const std::string expr2(tok2 ? tok2->expressionString() : std::string("v2"));
-    const std::string dataStr = (ltk == ValueFlow::Value::LifetimeKind::Iterator) ? "Iterators" : (ltk == ValueFlow::Value::LifetimeKind::Address ? "Addresses" : "Pointers" );
+    const std::string dataStr = (ltk == ValueFlow::Value::LifetimeKind::Iterator) ? "Iterators" : (ltk == ValueFlow::Value::LifetimeKind::Address ? "Addresses" : "Pointers");
     const std::string objectStr = (ltk == ValueFlow::Value::LifetimeKind::Iterator || ltk == ValueFlow::Value::LifetimeKind::Object) ? "containers '" : "objects '";
     reportError(tok1,
                 Severity::error,
@@ -793,7 +793,7 @@ bool CheckStlImpl::checkIteratorPair(const Token* tok1, const Token* tok2)
         if (val1.tokvalue->expressionString() == val2.tokvalue->expressionString())
             iteratorsError(tok1, val1.tokvalue, val1.tokvalue->expressionString());
         else
-            mismatchingContainersError(val1.tokvalue, val2.tokvalue);
+            mismatchingContainersError(val1.tokvalue, val2.tokvalue, val1.lifetimeKind);
         return true;
     }
 
