@@ -376,7 +376,7 @@ void CheckBufferOverrunImpl::arrayIndex()
             }
         }
         if (neg) {
-            negativeIndexError(tok, dimensions, negativeIndexes);
+            negativeIndexError(tok, dimensions, negativeIndexes, errorPath);
         }
     }
 }
@@ -454,7 +454,8 @@ void CheckBufferOverrunImpl::arrayIndexError(const Token* tok,
 
 void CheckBufferOverrunImpl::negativeIndexError(const Token* tok,
                                                 const std::vector<Dimension>& dimensions,
-                                                const std::vector<ValueFlow::Value>& indexes)
+                                                const std::vector<ValueFlow::Value>& indexes,
+                                                ErrorPath errorPath)
 {
     if (!tok) {
         reportError(tok, Severity::error, "negativeIndex", "Negative array index", CWE_BUFFER_UNDERRUN, Certainty::normal);
@@ -472,7 +473,10 @@ void CheckBufferOverrunImpl::negativeIndexError(const Token* tok,
             negativeValue = &indexValue;
     }
 
-    reportError(getErrorPath(tok, negativeValue, "Negative array index"),
+    const ErrorPath errorPathTok = getErrorPath(tok, negativeValue, "Negative array index");
+    errorPath.insert(errorPath.end(), errorPathTok.begin(), errorPathTok.end());
+
+    reportError(errorPath,
                 (negativeValue->errorSeverity() && !negativeValue->conditional) ? Severity::error : Severity::warning,
                 "negativeIndex",
                 arrayIndexMessage(tok, dimensions, indexes, condition),
@@ -1348,7 +1352,7 @@ void CheckBufferOverrun::getErrorMessages(ErrorLogger& errorLogger, const Settin
     CheckBufferOverrunImpl c(nullptr, settings, errorLogger);
     c.arrayIndexError(nullptr, std::vector<Dimension>(), std::vector<ValueFlow::Value>(), {});
     c.pointerArithmeticError(nullptr, nullptr, nullptr);
-    c.negativeIndexError(nullptr, std::vector<Dimension>(), std::vector<ValueFlow::Value>());
+    c.negativeIndexError(nullptr, std::vector<Dimension>(), std::vector<ValueFlow::Value>(), {});
     c.arrayIndexThenCheckError(nullptr, "i");
     c.bufferOverflowError(nullptr, nullptr, Certainty::normal);
     c.objectIndexError(nullptr, nullptr, true);

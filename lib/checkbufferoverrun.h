@@ -106,7 +106,8 @@ public:
                          ErrorPath errorPath);
     void negativeIndexError(const Token* tok,
                             const std::vector<Dimension>& dimensions,
-                            const std::vector<ValueFlow::Value>& indexes);
+                            const std::vector<ValueFlow::Value>& indexes,
+                            ErrorPath errorPath);
 
     void pointerArithmetic();
     void pointerArithmeticError(const Token *tok, const Token *indexToken, const ValueFlow::Value *indexValue);
