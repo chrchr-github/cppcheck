@@ -376,7 +376,7 @@ void CheckBufferOverrunImpl::arrayIndex()
             }
         }
         if (neg) {
-            negativeIndexError(tok, dimensions, negativeIndexes, errorPath);
+            negativeIndexError(tok, dimensions, negativeIndexes, std::move(errorPath));
         }
     }
 }
